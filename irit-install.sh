@@ -1,115 +1,82 @@
-# Siftgrab Install Script
-#Verify root
-[ `whoami` != 'root' ] && echo "Irit install requires root access!" && exit
+#! /bin/bash
+function pause(){
+ read -s -n 1 -p "Command failed!!!! Press any key to continue . . ."
+ echo ""
+}
 
-#sqlite browser repo
-add-apt-repository -y ppa:linuxgndu/sqlitebrowser  
+#Irit Tools auto install
+#Directories
+mkdir -p /mnt/{raw,image_mount,vss,shadow,bde} 
+mkdir /cases
+mkdir -p /usr/local/src/{autopsy,irit/Install,keydet89/tools,yara/Neo23x0/signature-base,yara/yararules.com,densityscout,floss,INDXParse,jobparser}
 
-# Add Gift repository
-#add-apt-repository ppa:gift/stable -y -u || read -n1 -r -p "Command failed!!!! Press a key to continue..." key
-# apt-get install plaso-tools -y || read -n1 -r -p "Command failed!!!! Press a key to continue..." key
+#apt # apt-get || pause
+apt-get update || pause
+apt-get upgrade -q -y -u  || pause
+#PPA 
+add-apt-repository -y ppa:linuxgndu/sqlitebrowser || pause
+irit_apt_pkgs="net-tools curl ranger git python3-pip fdupes xpad bless mlocate gparted attr sqlite3 jq chromium-browser graphviz ewf-tools afflib-tools qemu-utils libbde-utils exfat-utils libvshadow-utils xmount cifs-utils guymager libesedb-utils liblnk-utils install ubuntu-restricted-extras sqlitebrowser foremost libevtx-utils pff-tools clamav clamtk rar unrar p7zip-full p7zip-rar wine winetricks"
+for apt_pkg in $irit_apt_pkgs;
+do
+  sudo apt-get install $apt_pkg -y 
+  dpkg -S $apt_pkg || pause
+done
 
-apt-get update 
-apt-get upgrade -q -y -u 
+#Git Installs
+git clone https://github.com/keydet89/Tools.git /usr/local/src/
+git clone https://github.com/simsong/bulk_extractor.git /usr/local/src/bulk_extractor 
+git clone https://github.com/davidpany/WMI_Forensics.git /usr/local/src/WMI_Forensics
+git clone https://github.com/williballenthin/INDXParse.git /usr/local/src/INDXParse
+git clone https://github.com/DidierStevens/DidierStevensSuite.git /usr/local/src/DidierStevensSuite
+git clone https://github.com/Invoke-IR/PowerForensicsPortable.git /usr/local/src/PowerForensics
+git clone https://github.com/eddsalkield/analyzeMFT3.git /usr/local/src/analyzeMFT3
+git clone https://github.com/volatilityfoundation/volatility.git /usr/local/src/volatility 
+git clone https://github.com/volatilityfoundation/volatility3.git /usr/local/src/volatility3
+git clone https://github.com/Neo23x0/signature-base.git /usr/local/src/yara/Neo23x0/signature-base
+git clone https://github.com/Yara-Rules/rules.git /usr/local/src/yara/yararules.com
 
-# Create Target Directories
-mkdir -p /mnt/{raw,image_mount,vss,shadow,bde} /cases 
-mkdir -p /usr/local/src/irit/Install 
-#Make a symbolic link for irit
-ln -s /usr/local/src/irit /usr/share/irit 
+#wget
+wget -O /usr/local/src/irit/ermount.sh https://raw.githubusercontent.com/siftgrab/EverReady-Disk-Mount/master/ermount.sh || pause 
+wget -O /usr/local/src/irit/prefetchruncounts.py https://raw.githubusercontent.com/siftgrab/prefetchruncounts/master/prefetchruncounts.py || pause 
+wget -O /usr/local/src/irit/winservices.py https://raw.githubusercontent.com/siftgrab/Python-Registry-Extraction/master/winservices.py || pause 
+wget -O /usr/local/src/irit/Install/RegRipper30-apt-git-Install.sh https://raw.githubusercontent.com/siftgrab/siftgrab/master/regripper.conf/RegRipper30-apt-git-Install.sh  || pause
+wget -P /usr/local/src/densityscout/ https://cert.at/media/files/downloads/software/densityscout/files/densityscout_build_45_linux.zip || pause
+unzip  /usr/local/src/densityscout/densityscout_build_45_linux.zip 
+wget -P /usr/local/src/floss/ https://s3.amazonaws.com/build-artifacts.floss.flare.fireeye.com/travis/linux/dist/floss || pause 
+wget -P /usr/local/src/jobparser/ https://raw.githubusercontent.com/gleeda/misc-scripts/master/misc_python/jobparser.py || pause
+#wget -P /usr/local/src/nirsoft/ https://download.nirsoft.net/nirsoft_package_enc_1.23.33.zip || pause
+#unzip -P nirsoft9876$ /usr/local/src/nirsoft/nirsoft_package_enc_1.23.33.zip
+chmod -R 755 /usr/local/src/irit/*  || pause  
+chmod 755 /usr/local/src/WMI_Forensics/*.py || pause 
+chmod 755 /usr/local/src/analyzeMFT3/analyzeMFT.py || pause 
+chmod 755 /usr/local/src/floss/floss || pause 
 
+#Symbolic links
+[ -d "/usr/share/irit" ] || ln -s /usr/local/src/irit /usr/share/irit
+cp /usr/bin/python3 /usr/local/bin/python  
+[ -f "/usr/bin/pip" ] || ln -s /usr/bin/pip3 /usr/bin/pip
+[ -f "/usr/local/bin/ermount" ]  || ln -s /usr/local/src/irit/ermount.sh /usr/local/bin/ermount
+[ -f "/usr/local/bin/prefetchruncounts.py" ] || ln -s /usr/local/src/irit/prefetchruncounts.py /usr/local/bin/prefetchruncounts.py
+[ -f "/usr/local/bin/winservices.py" ] || ln -s /usr/local/src/irit/winservices.py /usr/local/bin/winservices.py
+[ -f "/usr/local/bin/CCM_RUA_Finder.py" ] || ln -s /usr/local/src/WMI_Forensics/CCM_RUA_Finder.py /usr/local/bin/CCM_RUA_Finder.py
+[ -f "/usr/local/bin/PyWMIPersistenceFinder.py" ] || ln -s /usr/local/src/WMI_Forensics/PyWMIPersistenceFinder.py /usr/local/bin/PyWMIPersistenceFinder.py
+[ -f "/usr/local/bin/analyzeMFT.py" ] || ln -s  /usr/local/src/analyzeMFT3/analyzeMFT.py /usr/local/bin/analyzeMFT.py 
 
-# Apt repo install
-# Install Operatin system and General Purpose Utilities
-sudo apt-get install net-tools curl ranger git python3-pip fdupes xpad bless mlocate gparted attr sqlite3 jq chromium-browser graphviz -y 
-
-# Install Disk Mounting 
-sudo apt-get install ewf-tools afflib-tools qemu-utils libbde-utils exfat-utils libvshadow-utils xmount cifs-utils guymager -y 
-
-#Install misc forensic tools
-sudo apt-get install libesedb-utils liblnk-utils sqlitebrowser foremost libevtx-utils pff-tools autopsy -y 
-
-# Download irit tools to /usr/local/src/irit 
-sudo wget -O /usr/local/src/irit/ermount.sh https://raw.githubusercontent.com/siftgrab/EverReady-Disk-Mount/master/ermount.sh   
-sudo wget -O /usr/local/src/irit/prefetchruncounts.py https://raw.githubusercontent.com/siftgrab/prefetchruncounts/master/prefetchruncounts.py 
-sudo wget -O /usr/local/src/irit/winservices.py https://raw.githubusercontent.com/siftgrab/Python-Registry-Extraction/master/winservices.py 
-wget -O /usr/local/src/irit/Install/RegRipper30-apt-git-Install.sh https://raw.githubusercontent.com/siftgrab/siftgrab/master/regripper.conf/RegRipper30-apt-git-Install.sh || read -n1 -r -p "Command failed!!!! Press a key to continue..." key
-
-#make irit tools executable and copy to /usr/local/bin/
-chmod -R 755 /usr/local/src/irit/* || read -n1 -r -p "Command failed!!!! Press a key to continue..." key
-cp /usr/local/src/irit/ermount.sh /usr/local/bin/ermount 
-cp /usr/local/src/irit/prefetchruncounts.py /usr/local/bin/ 
-cp /usr/local/src/irit/winservices.py /usr/local/bin/ 
-
-#Install Regripper 3.0 
-/usr/local/src/irit/Install/RegRipper30-apt-git-Install.sh 
-
-#Download Keydet89 tools
-mkdir -p /usr/local/src/keydet89 
-cd /usr/local/src/keydet89 
-git clone https://github.com/keydet89/Tools.git 
-
-#Download from github
-cd .. 
-git clone --recursive https://github.com/simsong/bulk_extractor.git 
-cd bulk_extractor
-chmod -R 755 *
-bash /etc/CONFIGURE_UBUNTU18.bash
-bootstrap.sh
-./configure
-make 
-make install
-
-cd ..
-
-git clone https://github.com/davidpany/WMI_Forensics.git 
-git clone https://github.com/williballenthin/INDXParse.git 
-git clone https://github.com/dkovar/analyzeMFT.git 
-git clone https://github.com/DidierStevens/DidierStevensSuite.git
-git clone https://github.com/Invoke-IR/PowerForensicsPortable.git
-git clone https://github.com/eddsalkield/analyzeMFT3.git  
+cp /usr/share/applications/bless.desktop /home/analyst/Desktop/ || pause
+cp /usr/share/applications/sqlitebrowser.desktop /home/analyst/Desktop/  || pause
+cp /usr/share/applications/ranger.desktop /home/analyst/Desktop/ || pause
 
 
-chmod 755 /usr/local/src/WMI_Forensics/*.py
-cp /usr/local/src/WMI_Forensics/*.py /usr/local/bin/
-chmod 755 /usr/local/src/analyzeMFT3/analyzeMFT.py
-cp /usr/local/src/analyzeMFT3/analyzeMFT.py /usr/local/bin/
+
+#pip package install
+irit_pip_pkgs="usnparser oletools libscca-python liblnk-python python-registry pefile libfwsi-python pycrypto yara-python"
+
+for pip_pkg in $irit_pip_pkgs;
+do
+  pip install $pip_pkg
+done
 
 
-#Wget misc files and apps
-mkdir densityscout 
-cd densityscout 
-wget -c https://cert.at/media/files/downloads/software/densityscout/files/densityscout_build_45_linux.zip  \
-&& unzip densityscout_build_45_linux.zip
-chmod 755 lin64/densityscout
-chmod 755 lin32/densityscout
-cd .. 
-mkdir floss 
-cd floss 
-wget wget -O /usr/local/src/floss/floss https://s3.amazonaws.com/build-artifacts.floss.flare.fireeye.com/travis/linux/dist/floss 
-chmod 755 /usr/local/src/floss/floss
-
-#Set python3 as default and install python packages
-cp /usr/bin/python3 /usr/local/bin/python 
-pip3 install usnparser 
-pip3 install -U oletools 
-pip3 install libscca-python 
-pip3 install liblnk-python 
-pip3 install python-registry 
-pip3 install pefile
-pip3 install libfwsi-python
-
-
-# Install ClamAV
-apt-get install clamav clamtk -y 
-
-#Install Powershell and Power Forensics
-snap install powershell --classic 
-
-updatedb
-
-
-# Optional File Edits
-# Enable File Sharing in VMWare options
-# Add line to last line of  etc/fstab
-  #echo "vmhgfs-fuse    /mnt/hgfs    fuse    defaults,nonempty,allow_other 0 0” >> etc/fstab
+#install scripts
+/usr/local/src/irit/Install/RegRipper30-apt-git-Install.sh
+history -c
