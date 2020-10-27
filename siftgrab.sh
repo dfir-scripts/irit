@@ -4,15 +4,16 @@ function read_me(){
 echo "
 ##################################################################################
 #
-# Irit is a command line Forensics Triage Tool for Windows Forensic Images 
+# Siftgrab is a command line Forensics Assist Tool for Windows Forensic Images 
 #
-# A single script (siftgrab.sh) to mount images, collect and extract image artifacts.
-# Process single or multiple computer excerpts (including volume shadow copies) into a single csv and TLN timelines complete with computer and user names
-# Copy Siftgrab.sh copy the files to usr/local/bin and make the following updates to SANS Sift:
 # 
-# Tested on SANS Sift 3.0 v2018.28.0 (Ubuntu 16.04) and SANS Sift 3.0 (Ubuntu 14.04)
 # INSTALLATION:
-# Download Siftgrab and copy to /usr/local/bin
+# Run the install script to load dependencies or the irit_install script on a fresh install of Ubuntu 20.04 to create your own forensics suite
+
+# Tools List
+
+
+
 # "git clone https://github.com/siftgrab/siftgrab.git"
 # "chmod +x siftgrab/*.sh"
 # "cp siftgrab/* /usr/local/bin/"
@@ -153,23 +154,27 @@ function show_menu(){
     RED=`echo "\033[31m"`
     echo -e "${GREEN}  Siftgrab${NORMAL}"
     echo -e "*****************************************************"
-    echo -e "${GRAY}Mount Images and Aqcuire Image Excerpts${NORMAL}"
+    echo -e "${GRAY}Mount and Extract Information From Windows Disk Images${NORMAL}"
     echo -e "*****************************************************"
-    echo -e "** 1) ${GREEN}Mount a Disk, E01, Raw VMDK Disk Image${NORMAL}"
-    echo -e "** 2)${GREEN} Extract Windows Artifacts from Mounted image or Saved Data${NORMAL}"
-    echo -e "** 3) ${GREEN}Acquire Important Windows Files from Mounted Image(s)${NORMAL}"
-    echo -e "** 4) ${GREEN}Acquire \$USNJRNL and \$LOGFILE from Mounted Image(s)${NORMAL}"
-    echo -e "** 5) ${GREEN}Acquire all Windows Log Files from Mounted Image(s)${NORMAL}"
-    echo -e "** 6) ${GREEN}Find and Extract Outlook OST/PST Mail Files ${NORMAL}"
-    echo -e "** 7) ${GREEN}Find and Acquire Volatile Data${NORMAL}"
-    echo -e "**    ${GREEN}(hiberfil.sys, dmp, pagefile, Swap,)${NORMAL}"
+    echo -e "** 1) ${GREEN}Mount a Disk Image ( E01, Raw, AFF, QCOW VMDK, VHDX)${NORMAL}"
+    echo -e "** 2)${GREEN} Process Windows Artifacts from Mounted image or Saved Data${NORMAL}"
+    echo -e "** 3) ${GREEN}Acquire and Save Important Windows Files from Mounted Image(s)${NORMAL}"
+    echo -e "** 4) ${GREEN}Find and Acquire Volatile Data Files${NORMAL}"
+    echo -e "**    ${GREEN}(hiberfil.sys, pagefile, swapfile.sys,)${NORMAL}"
+    echo -e "** 5) ${GREEN}Extract Outlook OST/PST Mail Files ${NORMAL}"
+    echo -e "** 6) ${GREEN}View Results(lf) ${NORMAL}"
     echo -e "*****************************************************${NORMAL}"
-    echo -e "${GRAY}Process Windows Artifacts${NORMAL}"
+    echo -e "${GRAY}More Tools ${NORMAL}"
     echo -e "*****************************************************"
-
-    echo -e "** 8)${GREEN} Scan Volume or files with ClamAV${NORMAL}"
-    echo -e "** 9)${GREEN} Readme${NORMAL}"
-    echo -e "** 10)${GREEN} Scan for Malcious Office Documents${NORMAL}"
+    echo -e "**  7) ${GREEN}Autopsy GUI${NORMAL}"
+    echo -e "**  8) ${GREEN}Parse $LOGFILE ${NORMAL}"
+    echo -e "**  9) ${GREEN}Extract $INDX ${NORMAL}"
+    echo -e "** 10) ${GREEN}NirSoft Tools ${NORMAL}"
+    echo -e "** 11) ${GREEN}Bulk Extrator(BEViewer) ${NORMAL}"
+    echo -e "** 12) ${GREEN}Extract Browser History ${NORMAL}"
+    echo -e "** 12) ${GREEN} Scan Volume or files with ClamAV${NORMAL}"
+    echo -e "** 13) ${GREEN} Readme${NORMAL}"
+    echo -e "** 14) ${GREEN} Scan for Malcious Office Documents${NORMAL}"
     echo ""
     echo -e "Select a menu option number or ${RED}enter to exit. ${NORMAL}"
     read opt
@@ -190,25 +195,21 @@ clear
            umount_all
            echo $mount_stat && echo $raw_stat && echo $nbd_stat && echo $vss_stat && echo $vsc_stat && echo $bde_stat && \
            echo "" && echo "Physical Disks: /dev/sd<n>" && lsblk -f /dev/sd* && echo "" 
-# [ "${1}" == "-b" ] mountbde
-
+           # Use ermount to mount bitlocker  encrypted files
            # start mounting process and select source image and mount point
            makegreen "ERMount a disk, disk image or VM"
            image_source
            mount_point
-
            # Send to mounting function based on image type
            [ -f "$image_name"002"" ] &&  echo $multi "Multiple raw disk segments detected, mounting with affuse" && mount_aff
            echo $image_type | grep -qie "AFF$" && mount_aff
            echo $image_type | grep -ie "E01$\|S01" && mount_e01
            echo $image_type | grep -ie "VMDK$\|VDI$\|QCOW2$\|VHD$\|VHDX$" && mount_nbd 
-
            # If no image type detected, process as raw
            [ "$image_src" == "" ] && image_src="${ipath}"
            is_device=$(echo "$image_src" | grep -i "/dev/sd")
            [ "${is_device}" != "" ] && [ "${1}" != "-b" ] && lsblk -f /dev/sd* && mount_image
            [ "${is_device}" != "" ] && [ "${1}" == "-b" ] && bit_locker_mount
-
            # Set image offset if needed
            set_image_offset
            # Decrypt bitlocker if "-b" is specified
@@ -230,10 +231,10 @@ clear
            set_windir
            get_computer_name
            set_dsource_path
+           check_dsource_path
            create_triage_dir
            get_usnjrlnsize
-		   yes-no && parse_usn
-           run regripper
+           yes-no && usn="yes"
            rip_software
            rip_system
            rip_security
@@ -241,24 +242,27 @@ clear
            regrip_user_plugins
            regrip_sam
            regrip_amcache.hve
-           regrip_syscache.hve_tln 
-           lnkinfo		   
+           regrip_syscache.hve_tln
+           del_no_result
+           lnkinfo
            recbin2tln
            chrome2tln
            firefox2tln
            skype2tln
            extract_webcacheV
-           ADS_extract
            prefetch_extract
            winservices
            consolidate_timeline
            extract_objects_data
            extract_winactivities
+           parse_index.dat     
            cp_setupapi
            extract_Jobs
-           extract MFT into TLN and CSV timelines
+           ADS_extract
+           #extract MFT into TLN and CSV timelines
            analyze_mft
-
+           find_deleted_files
+           [ "$usn" ] && parse_usn 
            # Clean-up empty Triage directories
            find $case_dir -empty -delete
            makegreen "Removing Duplicates..."
@@ -269,18 +273,10 @@ clear
            makegreen Process Complete!
            read -n1 -r -p "Press any key to continue..." key
            #####################################################
-           #TODO
-           #parse_index.dat
-
            show_menu;
             ;;
         #Menu Selection 3: Acquire Data from Mounted Disks or Image Excerpts
         3) clear;
-           #####################################################################
-           ######          Acquire Files From NTFS Volumes                ######
-           #####################################################################
-           ######  Add and Remove "#" to disable/enable acquisition types ######
-           ##################################################################### 
            # Set Preferences
            makegreen "Get a copy of Windows Artifacts"
            set_msource_path
@@ -290,12 +286,12 @@ clear
            echo "#### Acquistion Log $comp_name  ####" >  $case_dir/Acquisition.log.txt
            get_logsize
            get_usnjrlnsize
-		   yes-no && get_usnjrnl
+           yes-no && get_usnjrnl
            # Begin Acquisition
            echo ""
-           get_mft              
+           get_mft
            get_evtx
-           get_registry         
+           get_registry
            get_ntuser
            get_usrclass.dat
            get_lnk_files
@@ -308,8 +304,8 @@ clear
            get_skype
            get_WMI_info
            get_srumdb
-           get_ActivitiesCache				    
-           get_setupapi         
+           get_ActivitiesCache
+           get_setupapi
            get_scheduled_tasks
            [ "$get_logs" ] && get_logfiles 
            gzip -f $case_dir/$comp_name-acquisition.tar
@@ -318,79 +314,51 @@ clear
            du -sh $case_dir/$comp_name-acquisition.tar.gz
            read -n1 -r -p "Press any key to continue..." key
            clear;
-           show_menu;  
-            ;; 
-        #Menu Selection 3: Extract $USNJRNL Files a from Mounted Image(s)
-        4) clear;
+           show_menu;
+            ;;
+        #Menu Selection 6:  Collect files containing volatile data from mounted image
+        4) clear; 
            set_msource_path
            set_dsource_path
            set_windir
            get_computer_name
-           echo ""
-           makered "COLLECTING $USNJRNL FILES FROM MOUNTED DISKS AND VSC(s)"
-           get_usnjrnl
-           makegreen "Data Acquisition Complete!"
-           du -sh $case_dir
+           makered "COLLECTING VOLITILE FILES (hiberfil.sys, swapfile.sys, pagefile.sys and *.dmp)"
+           get_volatile
            read -n1 -r -p "Press any key to continue..." key
            clear;
            show_menu;  
-            ;; 
-        #Menu Selection 4: Extract Log Files a from Mounted Image(s)
-        5) clear;
-           set_msource_path
-           set_dsource_path
-           set_windir
-           get_computer_name
-           echo ""
-           
-           
-           makered "COLLECTING LOG FILES FROM MOUNTED DISKS AND VSC(s)"
-           get_logfiles
-		   get_evtx
-           makegreen "Data Acquisition Complete!"
-           #du -sh $case_dir/Artifact
-           read -n1 -r -p "Press any key to continue..." key
-           clear;
-           show_menu;  
-            ;; 
+            ;; 			
         #Menu Selection 5: Collect Outlook Email OST/PST files
-        6) clear; 
+        5) clear; 
+           makegreen "Extract Windows PST/OST file"
            set_msource_path
-           set_dsource_path
-           makered "COLLECTING OUTLOOK OST AND PST FILES"
            set_windir
            get_computer_name
-           
-           
-           get_outlook_data
+           set_dsource_path
+           set_windir
+           get_computer_name
+           create_triage_dir
+           #get_outlook_data
            extract_Outlook_pst_ost
            #find $case_dir/Artifact -type f| tee -a  $case_dir/Acquisition.log.txt
            find $case_dir -empty -delete
-           makegreen "Data Acquisition Complete!"
-           #du -sh $case_dir/Artifact
            read -n1 -r -p "Press any key to continue..." key
+           makegreen "Complete!!"
            clear;
            show_menu;  
             ;; 
-        #Menu Selection 6:  Collect files containing volatile data from mounted image
+        #Menu Selection 6: Launch Ranger
+        6) clear;
+           lf
+           clear;
+           show_menu;  
+            ;; 
+        #Menu Selection 5:Autopsy GUI
         7) clear; 
-           set_msource_path
-           set_dsource_path
-           echo ""
-           set_windir
-           get_computer_name
-           
-           
-           makered "COLLECTING VOLATILE DATA FILES"
-           get_volatile
-           vss_get_volatile
-              makegreen "Data Acquisition Complete!"
-           #du -sh $case_dir/Artifact
-           read -n1 -r -p "Press any key to continue..." key
+           /usr/local/src/autopsy/autopsy-4.16.0/bin/autopsy
            clear;
            show_menu;  
             ;; 
-
         #Menu Selection 8: Run AnalyzeMFT 
         8) clear;
            makegreen "Create TLN from $MFT";
@@ -406,7 +374,6 @@ clear
            set_dsource_path
            set_windir
            get_computer_name
-           
            clamscan -h
            makered "SCAN FILES WITH CLAMAV"        
            find /var/lib/clamav/|grep -i c.d$|while read d; do printf "$d\t" && stat -c %y "$d";done
@@ -433,7 +400,7 @@ clear
         #Menu Selection 10: ReadMe
         11) clear;
            read_me
-		   # oleid, olevba etc, etc
+           # oleid, olevba etc, etc
            read -n1 -r -p "Press any key to continue..." key
            clear 
            show_menu;
@@ -631,8 +598,9 @@ function set_msource_path(){
       echo ""
       makered "SET DATA SOURCE"
       echo "Set Path or Enter to Accept Default:"
-      read -e -p "" -i "/mnt/image_mount" mount_dir  
+      read -e -p "" -i "/mnt/image_mount/" mount_dir  
       [ ! -d "${mount_dir}" ] && makered "Path does not exist.." && sleep 1 && exit
+	  mount_dir=$(echo $mount_dir |sed 's_.*_&\/_'|sed 's|//*|/|g')
       echo "Data Source =" $mount_dir
 }
 
@@ -645,6 +613,8 @@ function set_dsource_path(){
       cd $case_dir
       [ ! -d "${case_dir}" ] && makered "Path does not exist.." && sleep 1 && show_menu  
       case_dir="$case_dir/$comp_name"
+}
+function check_dsource_path(){
       [ -d "$case_dir/Triage" ] && echo "$case_dir already exists! overwrite?" && yes-no && rm -r $case_dir/Triage && quit="no" 
       [ -d "$case_dir/Triage" ] && [ "$quit" != "no" ] && exit
       mkdir -p $case_dir/Triage
@@ -678,16 +648,16 @@ function get_computer_name(){
 
 #Create Output Directory
 function create_triage_dir(){
-triage_dirs=("Account_Usage" "File_Access" "Malware" "Program_Execution"  "Regripper/NTUSER" "USB_Access" "WinEvent_Logs" "Browser_Activity"  "Persistence" "Registry_Settings" "Timeline/MFT" "Timeline/USNJRNL" "User_Searches" "Alert" "ActivitiesCache")
-  for dir_names in "${triage_dirs[@]}";
-  do
-    mkdir -p $case_dir/Triage/$dir_names
-  done
-  find "/$mount_dir/$user_dir/" -maxdepth 2 ! -type l|grep -i ntuser.dat$ |while read ntuser_path;
+triage_dirs=("Account_Usage" "File_Access" "Malware" "Program_Execution"  "Regripper/NTUSER" "USB_Access" "WinEvent_Logs" "Browser_Activity"  "Persistence" "Registry_Settings" "Timeline/MFT" "Timeline/USNJRNL" "User_Searches" "Alert" "ActivitiesCache" "Outlook")
+    for dir_names in "${triage_dirs[@]}";
     do
-      user_name=$( echo "$ntuser_path"|sed 's/\/$//'|awk -F"/" '{print $(NF-1)}')
-      mkdir -p "$case_dir/Triage/Regripper/$user_name"
+      mkdir -p $case_dir/Triage/$dir_names
     done
+    find "/$mount_dir/$user_dir/" -maxdepth 2 ! -type l|grep -i ntuser.dat$ |while read ntuser_path;
+      do
+        user_name=$( echo "$ntuser_path"|sed 's/\/$//'|awk -F"/" '{print $(NF-1)}')
+        mkdir -p "$case_dir/Triage/Regripper/$user_name"
+      done
 }
 
 ##############ACQUISITION FUNCTIONS############################
@@ -719,7 +689,7 @@ function get_usnjrnl(){
     echo "#### USNJRNL ####" >> $case_dir/Acquisition.log.txt
     cd $mount_dir
     tar -Prvf $case_dir/$comp_name-acquisition.tar \$Extend/\$UsnJrnl:\$J | tee -a  $case_dir/Acquisition.log.txt
-	echo ""
+    echo ""
     tar -Prvf $case_dir/$comp_name-acquisition.tar \$LogFile | tee -a  $case_dir/Acquisition.log.txt
     echo ""
 } 
@@ -786,31 +756,31 @@ function get_lnk_files(){
 
 #Copy Prefetch files 
 function get_prefetch(){
-     makegreen "Saving Windows Prefetch"
+    makegreen "Saving Windows Prefetch"
     echo "#### PREFETCH ####" >> $case_dir/Acquisition.log.txt
-     cd $mount_dir
-     find $windir/[P,p]refetch  2>/dev/null -print0| \
-     tar -rvf  $case_dir/$comp_name-acquisition.tar --null -T - |tee -a $case_dir/Acquisition.log.txt 
-     echo ""
+    cd $mount_dir
+    find $windir/[P,p]refetch  2>/dev/null -print0| \
+    tar -rvf  $case_dir/$comp_name-acquisition.tar --null -T - |tee -a $case_dir/Acquisition.log.txt 
+    echo ""
 }
 
 #Copy Amcache.hve and recentfilecache.bcf
 function get_Amcache.hve(){
-  makegreen "Saving Amcache.hve and Recentfilecache.bcf" 
+    makegreen "Saving Amcache.hve and Recentfilecache.bcf" 
     echo "#### AMCACHE.HVE AND RECENTFILECACHE.BCF ####" >> $case_dir/Acquisition.log.txt
-  cd $mount_dir
-  # Get Amcache.hve
-  find $windir/[a,A]*/[P,p]* -maxdepth 1 -type f -iname "Amcache.hve" 2>/dev/null -print0| \
-  tar -rvf  $case_dir/$comp_name-acquisition.tar --null -T - |tee -a $case_dir/Acquisition.log.txt 
-  # Get recentfilecache.bcf
-  find $windir/[a,A]*/[P,p]* -maxdepth 1 -type f -iname "Recentfilecache.bcf" 2>/dev/null -print0| \
-  tar -rvf  $case_dir/$comp_name-acquisition.tar --null -T - |tee -a $case_dir/Acquisition.log.txt 
-  echo ""
+    cd $mount_dir
+    # Get Amcache.hve
+    find $windir/[a,A]*/[P,p]* -maxdepth 1 -type f -iname "Amcache.hve" 2>/dev/null -print0| \
+    tar -rvf  $case_dir/$comp_name-acquisition.tar --null -T - |tee -a $case_dir/Acquisition.log.txt 
+    # Get recentfilecache.bcf
+    find $windir/[a,A]*/[P,p]* -maxdepth 1 -type f -iname "Recentfilecache.bcf" 2>/dev/null -print0| \
+    tar -rvf  $case_dir/$comp_name-acquisition.tar --null -T - |tee -a $case_dir/Acquisition.log.txt 
+    echo ""
 }
 
 #Copy metadata files($I*.*) from Windows Recycle.bin
 function get_Recycle.Bin(){
-     makegreen "Copying RECYCLE BIN"
+    makegreen "Copying RECYCLE BIN"
     echo "#### RECYCLEBIN $I ####" >> $case_dir/Acquisition.log.txt
     cd $mount_dir
     find "\$Recycle.Bin" -type f -iname "*\$I*" 2>/dev/null -print0| \
@@ -920,7 +890,7 @@ function get_chrome(){
 
 #Copy Firefox Metadata
 function get_firefox(){
-     makegreen "Copying FIREFOX Metadata"
+    makegreen "Copying FIREFOX Metadata"
     echo "#### FIREFOX ####" >> $case_dir/Acquisition.log.txt
     cd $mount_dir
     find $user_dir/*/AppData/Roaming/Mozilla/Firefox/Profiles/*/ -maxdepth 2 -type f \
@@ -939,22 +909,22 @@ function rip_software(){
     sleep 1  
     find $mount_dir/$winsysdir/$regdir -maxdepth 1 -type f 2>/dev/null | grep -i "\/software$"| while read d; 
     do  
-        rip.pl -r "$d" -p winver |tee -a $case_dir/Triage/Windows_Version_Info-$comp_name.txt;  # winnt_cv
-        rip.pl -r "$d" -p lastloggedon |tee -a $case_dir/Triage/Account_Usage/Last-Logged-On-$comp_name.txt;
-        rip.pl -r "$d" -p networklist 2>/dev/null |tee -a $case_dir/Triage/Account_Usage/Network-List-$comp_name.txt;
-        rip.pl -r $d -p profilelist 2>/dev/null |tee -a $case_dir/Triage/Account_Usage/User-Profiles-$comp_name.txt;
-        rip.pl -r $d -p pslogging 2>/dev/null |tee -a $case_dir/Triage/Account_Usage/Powershell-logging-$comp_name.txt;
-        rip.pl -r "$d" -p portdev |tee -a $case_dir/Triage/USB_Access/USB_Device_List-$comp_name.txt;
-        rip.pl -r "$d" -p runonceex |grep -va "^$"|tee -a $case_dir/Triage/Persistence/Run-Once-$comp_name.txt;
-        rip.pl -r "$d" -p appcertdlls |grep -va "^$"|tee -a $case_dir/Triage/Persistence/Appcertsdlls-$comp_name.txt; 
-        rip.pl -r "$d" -p appinitdlls |grep -va "^$"|tee -a $case_dir/Triage/Persistence/appinitdlls-$comp_name.txt; 
-        rip.pl -r "$d" -p dcom |grep -va "^$"|tee -a $case_dir/Triage/Persistence/ports-$comp_name.txt;
-        rip.pl -r "$d" -p psscript |grep -va "^$"|tee -a $case_dir/Triage/Persistence/Powershell-Script-$comp_name.txt;          
-        rip.pl -r "$d" -p listsoft |grep -va "^$"|tee -a $case_dir/Triage/Account_Usage/Software-Installed-$comp_name.txt; 
-        rip.pl -r "$d" -p msis |grep -va "^$"|tee -a $case_dir/Triage/Account_Usage/MSIexec-$comp_name.txt;
-        rip.pl -r "$d" -p netsh |grep -va "^$"|tee -a $case_dir/Triage/Program_Execution/Netsh-$comp_name.txt;
-        rip.pl -r "$d" -p srum |grep -va "^$"|tee -a $case_dir/Triage/Program_Execution/Srum-$comp_name.txt;
-        rip.pl -r "$d" -p run |grep -va "^$"|tee -a $case_dir/Triage/Program_Execution/Srun-$comp_name.txt;
+      rip.pl -r "$d" -p winver |tee -a $case_dir/Triage/Windows_Version_Info-$comp_name.txt;  # winnt_cv
+      rip.pl -r "$d" -p lastloggedon |tee -a $case_dir/Triage/Account_Usage/Last-Logged-On-$comp_name.txt;
+      rip.pl -r "$d" -p networklist 2>/dev/null |tee -a $case_dir/Triage/Account_Usage/Network-List-$comp_name.txt;
+      rip.pl -r $d -p profilelist 2>/dev/null |tee -a $case_dir/Triage/Account_Usage/User-Profiles-$comp_name.txt;
+      rip.pl -r $d -p pslogging 2>/dev/null |tee -a $case_dir/Triage/Account_Usage/Powershell-logging-$comp_name.txt;
+      rip.pl -r "$d" -p portdev |tee -a $case_dir/Triage/USB_Access/USB_Device_List-$comp_name.txt;
+      rip.pl -r "$d" -p runonceex |grep -va "^$"|tee -a $case_dir/Triage/Persistence/Run-Once-$comp_name.txt;
+      rip.pl -r "$d" -p appcertdlls |grep -va "^$"|tee -a $case_dir/Triage/Persistence/Appcertsdlls-$comp_name.txt; 
+      rip.pl -r "$d" -p appinitdlls |grep -va "^$"|tee -a $case_dir/Triage/Persistence/appinitdlls-$comp_name.txt; 
+      rip.pl -r "$d" -p dcom |grep -va "^$"|tee -a $case_dir/Triage/Persistence/ports-$comp_name.txt;
+      rip.pl -r "$d" -p psscript |grep -va "^$"|tee -a $case_dir/Triage/Persistence/Powershell-Script-$comp_name.txt;          
+      rip.pl -r "$d" -p listsoft |grep -va "^$"|tee -a $case_dir/Triage/Account_Usage/Software-Installed-$comp_name.txt; 
+      rip.pl -r "$d" -p msis |grep -va "^$"|tee -a $case_dir/Triage/Account_Usage/MSIexec-$comp_name.txt;
+      rip.pl -r "$d" -p netsh |grep -va "^$"|tee -a $case_dir/Triage/Program_Execution/Netsh-$comp_name.txt;
+      rip.pl -r "$d" -p srum |grep -va "^$"|tee -a $case_dir/Triage/Program_Execution/Srum-$comp_name.txt;
+      rip.pl -r "$d" -p run |grep -va "^$"|tee -a $case_dir/Triage/Program_Execution/Srun-$comp_name.txt;
     done
     # rip all tlns to tempfile
     find $mount_dir/$winsysdir/$regdir -maxdepth 1 -type f 2>/dev/null | grep -i "\/software$"| while read d;
@@ -970,17 +940,17 @@ function rip_system(){
     sleep 1  
     find $mount_dir/$winsysdir/$regdir -maxdepth 1 -type f 2>/dev/null | grep -i -m1 "\/system$"| while read d; 
     do  
-        rip.pl -r $d -p nic2 2>/dev/null |tee -a $case_dir/Triage/Account_Usage/Last-Networks-$comp_name.txt;
-        rip.pl -r "$d" -p shares 2>/dev/null|tee -a $case_dir/Triage/Account_Usage/Share-Info-$comp_name.txt;
-        rip.pl -r "$d" -p shimcache |tee -a $case_dir/Triage/Program_Execution/Shimcache-$comp_name.txt;
-        rip.pl -r "$d" -p usbstor |tee -a $case_dir/Triage/USB_Access/USBStor-$comp_name.txt;
-        rip.pl -r "$d" -p backuprestore |tee -a $case_dir/Triage/Persistence/Not-In-VSS-$comp_name.txt;
-        rip.pl -r "$d" -p ntds |tee -a $case_dir/Triage/Persistence/ntds-$comp_name.txt;
-        rip.pl -r "$d" -p devclass |tee -a $case_dir/Triage/USB_Access/USBdesc-$comp_name.txt;
-        rip.pl -r "$d" -p lsa |tee -a $case_dir/Triage/Persistence/Lsa-$comp_name.txt;
-        rip.pl -r "$d" -p rdpport |tee -a $case_dir/Triage/Account_Usage/RDP-Port-$comp_name.txt;         
-        rip.pl -r "$d" -p remoteaccess |tee -a $case_dir/Triage/Account_Usage/Remote-Access-Lockout-$comp_name.txt;
-        rip.pl -r "$d" -p routes |tee -a $case_dir/Triage/Account_Usage/Routes-$comp_name.txt;   
+      rip.pl -r $d -p nic2 2>/dev/null |tee -a $case_dir/Triage/Account_Usage/Last-Networks-$comp_name.txt;
+      rip.pl -r "$d" -p shares 2>/dev/null|tee -a $case_dir/Triage/Account_Usage/Share-Info-$comp_name.txt;
+      rip.pl -r "$d" -p shimcache |tee -a $case_dir/Triage/Program_Execution/Shimcache-$comp_name.txt;
+      rip.pl -r "$d" -p usbstor |tee -a $case_dir/Triage/USB_Access/USBStor-$comp_name.txt;
+      rip.pl -r "$d" -p backuprestore |tee -a $case_dir/Triage/Persistence/Not-In-VSS-$comp_name.txt;
+      rip.pl -r "$d" -p ntds |tee -a $case_dir/Triage/Persistence/ntds-$comp_name.txt;
+      rip.pl -r "$d" -p devclass |tee -a $case_dir/Triage/USB_Access/USBdesc-$comp_name.txt;
+      rip.pl -r "$d" -p lsa |tee -a $case_dir/Triage/Persistence/Lsa-$comp_name.txt;
+      rip.pl -r "$d" -p rdpport |tee -a $case_dir/Triage/Account_Usage/RDP-Port-$comp_name.txt;         
+      rip.pl -r "$d" -p remoteaccess |tee -a $case_dir/Triage/Account_Usage/Remote-Access-Lockout-$comp_name.txt;
+      rip.pl -r "$d" -p routes |tee -a $case_dir/Triage/Account_Usage/Routes-$comp_name.txt;   
     done
     find $mount_dir/$winsysdir/$regdir -maxdepth 1 -type f 2>/dev/null | grep -i "\/system$"| while read d;
     do 
@@ -995,7 +965,7 @@ function rip_security(){
     sleep 1  
     find $mount_dir/$winsysdir/$regdir -maxdepth 1 -type f 2>/dev/null | grep -m1 -i "\/security$"| while read d; 
     do  
-        rip.pl -r $d -p auditpol 2>/dev/null |tee -a $case_dir/Triage/Account_Usage/Audit-Policy-$comp_name.txt;
+      rip.pl -r $d -p auditpol 2>/dev/null |tee -a $case_dir/Triage/Account_Usage/Audit-Policy-$comp_name.txt;
     done
     find $mount_dir/$winsysdir/$regdir -maxdepth 1 -type f 2>/dev/null | grep -i "\/security$" | while read d; 
     do 
@@ -1005,7 +975,7 @@ function rip_security(){
 
 #Run all RegRipper plugins on NTUSER.DAT and Usrclass.dat
 function regrip_ntuser_usrclass(){
-  find "/$mount_dir/$user_dir/" -maxdepth 2 ! -type l|grep -i ntuser.dat$ |while read ntuser_path;
+    find "/$mount_dir/$user_dir/" -maxdepth 2 ! -type l|grep -i ntuser.dat$ |while read ntuser_path;
     do
       user_name=$( echo "$ntuser_path"|sed 's/\/$//'|awk -F"/" '{print $(NF-1)}')
       usrclass_file=$(find /$mount_dir/$user_dir/"$user_name"/[aA]*[aA]/[lL]*[lL]/[mM][iI]*[tT]/[wW]*[sS] -maxdepth 3 -type f 2>/dev/null|grep -i -m1 "\/usrclass.dat$")
@@ -1092,15 +1062,15 @@ function regrip_sam(){
 
 #Run RegRipper on AmCache.hve
 function regrip_amcache.hve(){
-  makegreen "Extracting Any RecentFileCache/AmCache (Regripper)"
-  amcache_file=$(find $mount_dir/$windir/[a,A]*/[P,p]* -maxdepth 1 -type f |egrep -m1 -i \/amcache.hve$)
-  rfc_bcf_file=$(find $mount_dir/$windir/[a,A]*/[P,p]* -maxdepth 1 -type f |egrep -m1 -i \/RecentFileCache.bcf$)
+    makegreen "Extracting Any RecentFileCache/AmCache (Regripper)"
+    amcache_file=$(find $mount_dir/$windir/[a,A]*/[P,p]* -maxdepth 1 -type f |egrep -m1 -i \/amcache.hve$)
+    rfc_bcf_file=$(find $mount_dir/$windir/[a,A]*/[P,p]* -maxdepth 1 -type f |egrep -m1 -i \/RecentFileCache.bcf$)
 
-  [ "$amcache_file" ] && \
-  rip.pl -aT -r "$amcache_file" |sed "s/|||/|${comp_name}|${user_name}|/"| tee -a $tempfile
+    [ "$amcache_file" ] && \
+    rip.pl -aT -r "$amcache_file" |sed "s/|||/|${comp_name}|${user_name}|/"| tee -a $tempfile
 
-  [ "$rfc_bcf_file" ] && \
-  perl /usr/local/bin/rfc.pl "$rfc.bcf_file" |while read rfc;
+    [ "$rfc_bcf_file" ] && \
+    perl /usr/local/bin/rfc.pl "$rfc.bcf_file" |while read rfc;
     do
       echo "No Time Stamp, Recent File Cache, $comp_name, ,[Program Execution] RecentFileCache.bcf-"$rfc"" | tee -a $case_dir/Triage/Program_Execution/RecentFileCache.bcf-$comp_name.csv
     done 
@@ -1112,6 +1082,15 @@ function regrip_syscache.hve_tln(){
   [ "$syscache_file" ] && \
   rip.pl -aT -r "$syscache_file" >> $tempfile
 }
+
+function del_no_result(){
+  cd $case_dir
+  grep -RL ".:." /cases/ |while read d;
+  do
+    rm $d
+  done
+}
+
 
 function lnkinfo(){
   cd $mount_dir
@@ -1130,18 +1109,18 @@ function recbin2tln(){
     find $mount_dir/\$* -type f 2>/dev/null|grep "\$I"|sed 's|^\.||'|while read d; 
     do  
       ls $d
-      sid=$(echo $d |sed 's|^\.||'|sed 's/^.*recycle.bin\///I'|awk -F'/' '{print $1}') 
-      user_name=$( echo "$"|sed 's/\/$//'|awk -F"/" '{print $(NF-1)}')
-
+      sid=$(echo $d |sed 's|^\.||'|sed 's/^.*recycle.bin\///I'|awk -F'/' '{print $1}')
       name=$(strings -el -f $d) 
       hexsize=$(cat "$d"|xxd -s8 -l8 -ps| sed -e 's/[0]*$//g')
       size=$(echo $((0x$hexsize)))
-      hexdate0=$(cat "$d"|xxd -s16 -l8 -ps|awk '{gsub(/.{2}/,"& ")}1'|awk '{for(i=NF; i>0;i--)printf "%s",$i}' && echo "")
-	  hexdate1=$(echo $((0x$hexdate0/10000000)))
-      epoch=$(echo $(($hexdate1-11644473600)))
+	  hexdate0=$(cat "$d"|xxd -ps -s16 -l8 |grep -o .. |tac| tr -d '\n')
+      #hexdate0=$(cat "$d"|xxd -s16 -l8 -ps|awk '{gsub(/.{2}/,"& ")}1'|awk '{for(i=NF; i>0;i--)printf "%s",$i}' && echo "")
+	  epoch=$(echo $((0x$hexdate0/10000000-11644473600)))
+      #epoch=$(echo $(($hexdate1-11644473600)))
       date=$(date -d @$epoch +"%Y-%m-%d %H:%M:%S")
       echo "$epoch|Recycle|"$comp_name"||[Deleted] "$name " FILE SIZE: "$size| tee -a  >> $tempfile
       echo "$date,Recycle,"$comp_name",,[Deleted] "$name " FILE SIZE: "$size| tee -a $case_dir/Triage/File_Access/Recycled.csv
+	  echo "hexdateraw" $hexdate0
     done
 }
 
@@ -1193,11 +1172,11 @@ function chrome2tln(){
     done
 
     # Copy Files to Timeline Temp File
-    find $case_dir/Triage/Browser_Activity/ -type d |grep "Browser_Activity/Chrome-" | while read d; 
+    find $case_dir/Triage/Browser_Activity/ -type d |grep "Chrome" | while read d; 
     do 
       echo "$d"| while read f;
         do
-          timestamp=$(echo "$f"| awk -F',' '{print $1}'| grep -E '^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9]')
+        timestamp=$(echo "$f"| awk -F',' '{print $1}'| grep -E '^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9]')
           [ "$timestamp" != "" ] && tlntime=$(date -d "$timestamp"  +"%s" 2>/dev/null)
           tlninfo=$(echo "$f"| awk -F',' '{print "|"$2"|"$3"|"$4"|"$5}')  
           [ "$timestamp" != "" ] && echo $tlntime$tlninfo | >> $tempfile
@@ -1213,39 +1192,38 @@ function firefox2tln(){
     do
       user_name=$(echo "$d"|sed 's/\/AppData.*//'|sed 's/^.*\///') 
       #Extract FireFox Browsing history (places.sqlite)
-      cd $d 
-      [ -e "places.sqlite" ] && \
-      sqlite3 file:"places.sqlite" "select (moz_historyvisits.visit_date/1000000), moz_places.url, moz_places.title, moz_places.visit_count FROM moz_places,moz_historyvisits where moz_historyvisits.place_id=moz_places.id order by moz_historyvisits.visit_date;" |\
+      [ -e "$d/places.sqlite" ] && \
+      sqlite3 file:"$d/places.sqlite" "select (moz_historyvisits.visit_date/1000000), moz_places.url, moz_places.title, moz_places.visit_count FROM moz_places,moz_historyvisits where moz_historyvisits.place_id=moz_places.id order by moz_historyvisits.visit_date;" |\
       awk -F'|' '{print $1"|FireFox|||[URL]:"$2"  TITLE:"$3" VISIT-COUNT:" $4}'| sed "s/|||/|${comp_name}|${user_name}|/" |\
       tee -a "$case_dir/Triage/Browser_Activity/$user_name-FireFox-History-$comp_name.csv"
 
       # Extract FireFox Downloads
-      [ -e "downloads.sqlite" ] && \ echo yes
-      sqlite3 file:"places.sqlite" "select (startTime/1000000), source,target,currBytes,maxBytes FROM moz_downloads" |awk -F'|' '{print $1"|FireFox|||[Download]:"$2"=>"$3" BYTES DOWNLOADED=>"$4" TOTAL BYTES=>"$5}' | sed "s/|||/|${comp_name}|${user_name}|/" | \
+      [ -e "downloads.sqlite" ] && \ 
+      sqlite3 file:"$d/places.sqlite" "select (startTime/1000000), source,target,currBytes,maxBytes FROM moz_downloads" |awk -F'|' '{print $1"|FireFox|||[Download]:"$2"=>"$3" BYTES DOWNLOADED=>"$4" TOTAL BYTES=>"$5}' | sed "s/|||/|${comp_name}|${user_name}|/" | \
       tee -a "$case_dir/Triage/Browser_Activity/$user_name-FireFox-Downloads-$comp_name.csv"
 
       #Extract FireFox cookies
       [ -e "cookies.sqlite" ] && \
-      sqlite3 file:"cookies.sqlite" "select (creationTime/1000000), host,name,datetime((lastAccessed/1000000),'unixepoch','utc'),datetime((expiry/1000000),'unixepoch','utc') FROM moz_cookies" |\
+      sqlite3 file:"$d/cookies.sqlite" "select (creationTime/1000000), host,name,datetime((lastAccessed/1000000),'unixepoch','utc'),datetime((expiry/1000000),'unixepoch','utc') FROM moz_cookies" |\
       awk -F'|' '{print $1"|FireFox||| [Cookie Created]: "$2" NAME:"$3" ,LAST ACCESS:"$4", EXPIRY: "$5}'| \
       sed "s/|||/|${comp_name}|${user_name}|/" | \
       tee -a "$case_dir/Triage/Browser_Activity/$user_name-FireFox-Cookies-$comp_name.csv"
     done
-
     # Copy Files to Timeline Temp File
-    find $case_dir/Triage/Browser_Activity/ |grep "Browser_Activity/Chrome-" | while read d; 
+    find $case_dir/Triage/Browser_Activity/ -type d |grep "FireFox" 2>/dev/null| while read d; 
     do 
       echo "$d"| while read f;
         do
-          timestamp=$(echo "$f"| awk -F',' '{print $1}'| grep -E '^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9]')
+        timestamp=$(echo "$f"| awk -F',' '{print $1}'| grep -E '^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9]')
           [ "$timestamp" != "" ] && tlntime=$(date -d "$timestamp"  +"%s" 2>/dev/null)
           tlninfo=$(echo "$f"| awk -F',' '{print "|"$2"|"$3"|"$4"|"$5}')  
           [ "$timestamp" != "" ] && echo $tlntime$tlninfo | >> $tempfile
         done
       done
+
 }
-#done
-#fix paths for webcachev and chrome and firefox
+
+
 function extract_webcacheV(){
     cd $mount_dir/$user_dir/
     makegreen "Extracting any IE WebcacheV0x.dat files (esedbexport)"
@@ -1395,7 +1373,7 @@ function extract_Jobs(){
     find $windir -maxdepth 2 -type d 2>/dev/null  | grep -i '\/tasks$'|sed 's|^\./||'|while read d;
     do 
       echo "######## $d ########" |tee -a $case_dir/Triage/Persistence/Jobs-$comp_name.txt
-      python /usr/local/bin/jobparser.py -d "$d" |tee -a $case_dir/Triage/Persistence/Jobs-$comp_name.txt; 
+      python2 /usr/local/bin/jobparser.py -d "$d" |tee -a $case_dir/Triage/Persistence/Jobs-$comp_name.txt; 
     done
 }
 
@@ -1411,18 +1389,15 @@ extract_objects_data(){
     done
 }
 
-
 #Parse Windows History File
 extract_winactivities(){
     cd $mount_dir
     makegreen "Searching for ActivitiesCache.db" 
-    sleep 1
     cd $mount_dir/$user_dir/
     find "$mount_dir/$user_dir/" -maxdepth 2 ! -type l|grep -i ntuser.dat$ |while read ntuser_path;
     do
       user_name=$( echo "$ntuser_path"|sed 's/\/$//'|awk -F"/" '{print $(NF-1)}')
-      echo $user_name
-      find "$mount_dir/$user_dir/$user_name" -maxdepth 4-type f 2>/dev/null | \
+      find "$mount_dir/$user_dir/$user_name" -maxdepth 5 -type f 2>/dev/null | \
       grep -i "/AppData/Local/ConnectedDevicesPlatform/ActivitiesCache.db$"| sed 's|^\./||'|while read d; 
       do
         echo "$d"
@@ -1433,105 +1408,81 @@ extract_winactivities(){
     done
 }
 
+#Parse IE History File Index.dat
+parse_index.dat(){
+    cd $mount_dir
+    makegreen "Searching for any index.dat files" 
+    cd $mount_dir/$user_dir/
+    find "$mount_dir/$user_dir/" -maxdepth 2 ! -type l|grep -i ntuser.dat$ |while read ntuser_path;
+    do
+      user_name=$( echo "$ntuser_path"|sed 's/\/$//'|awk -F"/" '{print $(NF-1)}')
+      find "$mount_dir/$user_dir/$user_name" -size +5k -maxdepth 4-type f 2>/dev/null | \
+      grep -i index.dat$ | sed 's|^\./||'|while read d; 
+      do
+        perl /usr/local/bin/parseie.pl -t -f "$d" |tee -a $case_dir/Triage/Browser_Activity/Index.dat-$user_name-$comp_name.csv 
+      done
+    done
+}
 
 
 #Extract MFT to body file and then to TLN and csv files
 function analyze_mft(){
     cd $mount_dir
     makegreen "Analyzing \$MFT Standby..."
-    # AnalyzeMFT Outputs to bodyfile then converts to TLN and csv
-    cp $mount_dir/\$MFT $case_dir/Triage/Timeline/MFT/\$MFT-$comp_name && ls $case_dir/Triage/Timeline/MFT/\$MFT-$comp_name
-    makegreen "Creating a bodyfile from $case_dir/Triage/Timeline/MFT/\$MFT-$comp_name"
-    [ -f "$case_dir/Triage/Timeline/MFT/\$MFT-$comp_name" ] && \
-    analyzeMFT.py -p -f $case_dir/Triage/Timeline/MFT/\$MFT-$comp_name --bodyfull --bodyfile=$case_dir/Triage/Timeline/MFT/MFT-$comp_name.body
+    [ -f "\$MFT" ] && \
+    python2 /usr/local/bin/analyzeMFT.py -p -f \$MFT --bodyfull --bodyfile=$case_dir/Triage/Timeline/MFT/MFT-$comp_name.body
     [ -f $case_dir/Triage/Timeline/MFT/MFT-$comp_name.body ] && bodyfile.pl -f $case_dir/Triage/Timeline/MFT/MFT-$comp_name.body -s $comp_name | \
     sort -rn |tee $case_dir/Triage/Timeline/MFT/MFT-$comp_name.TLN.txt && \
     cat $case_dir/Triage/Timeline/MFT/MFT-$comp_name.TLN.txt | awk -F'|' '{$1=strftime("%Y-%m-%d %H:%M:%S",$1)}{print $1","$2","$3","$4","$5}'| \
     tee -a $case_dir/Triage/Timeline/MFT/MFT-$comp_name.csv 
-    [ "$(ls -A $case_dir/Triage/Timeline/MFT)" ] && makegreen "$MFT Extraction Complete!" || makered "\$MFT info not extracted!!"
+}
+function find_deleted_files(){
+    cd $mount_dir
+    makegreen "Finding Deleted Files in \$MFT Standby..."
+    [ -f "\$MFT" ] && \
+	python2 /usr/local/src/INDXParse/MFTINDX.py -d \$MFT |tee -a $case_dir/Triage/Timeline/MFT/MFT-Deleted-$comp_name.body
+    [ -f $case_dir/Triage/Timeline/MFT/MFT-Deleted-$comp_name.body ] && bodyfile.pl -f $case_dir/Triage/Timeline/MFT/MFT-Deleted-$comp_name.body -s $comp_name | \
+    sort -rn |tee $case_dir/Triage/Timeline/MFT/MFT-Deleted-$comp_name.TLN.txt && \
+    cat $case_dir/Triage/Timeline/MFT/MFT-Deleted-$comp_name.TLN.txt | awk -F'|' '{$1=strftime("%Y-%m-%d %H:%M:%S",$1)}{print $1","$2","$3","$4","$5}'| \
+    tee -a $case_dir/Triage/Timeline/MFT/MFT-Deleted-$comp_name.csv 
 }
 
 #Extract $USNJRNL:$J to TLN
 function parse_usn(){
     cd $mount_dir
-    makegreen "Analyzing \$USNJRNL:$J Standby..."
-    # AnalyzeMFT Outputs to bodyfile then converts to TLN and csv
-    cp $mount_dir/\$MFT $case_dir/Triage/Timeline/MFT/\$MFT-$comp_name && ls $case_dir/Triage/Timeline/MFT/\$MFT-$comp_name
-    makegreen "Creating a bodyfile from $case_dir/Triage/Timeline/MFT/\$MFT-$comp_name"
-    [ -f "$case_dir/Triage/Timeline/MFT/\$MFT-$comp_name" ] && \
-    analyzeMFT.py -p -f $case_dir/Triage/Timeline/MFT/\$MFT-$comp_name --bodyfull --bodyfile=$case_dir/Triage/Timeline/MFT/MFT-$comp_name.body
-    [ -f $case_dir/Triage/Timeline/MFT/MFT-$comp_name.body ] && bodyfile.pl -f $case_dir/Triage/Timeline/MFT/MFT-$comp_name.body -s $comp_name | \
-    sort -rn |tee $case_dir/Triage/Timeline/MFT/MFT-$comp_name.TLN.txt && \
-    cat $case_dir/Triage/Timeline/MFT/MFT-$comp_name.TLN.txt | awk -F'|' '{$1=strftime("%Y-%m-%d %H:%M:%S",$1)}{print $1","$2","$3","$4","$5}'| \
-    tee -a $case_dir/Triage/Timeline/MFT/MFT-$comp_name.csv 
-    [ "$(ls -A $case_dir/Triage/Timeline/MFT)" ] && makegreen "$MFT Extraction Complete!" || makered "\$MFT info not extracted!!"
+    makegreen "Extracting \$USNJRNL:$J Standby..."
+    [ -f "\$Extend/\$UsnJrnl:\$J" ] && \
+    python2 /usr/local/bin/usn.py -t -s $comp_name -f "\$Extend/\$UsnJrnl:\$J"  -o $case_dir/Triage/Timeline/USNJRNL/USNJRNL-$comp_name.TLN.txt
+    cat $case_dir/Triage/Timeline/USNJRNL/USNJRNL-$comp_name.TLN.txt | awk -F'|' '{$1=strftime("%Y-%m-%d %H:%M:%S",$1)}{print $1","$2","$3","$4","$5}'| \
+    tee -a $case_dir/Triage/Timeline/USNJRNL/USNJRNL-$comp_name.csv
 }
-
-
-#####################################
-#Locates and Backup any Outlook mail files to cases directory and then extracts mail files using pffexport
-function get_outlook_data(){
-    makegreen "Copying OUTLOOK OST/PST files"
-    cd $mount_dir/$user_dir
-    find . -type f 2>/dev/null | grep -i "\.[p,o]st$"|sed 's|^\./||'|while read d; do echo "$d" && rsync -aRq "$d" $case_dir/Artifact/$drv/$user_dir;done
-}
-
-# Collect Volatilile data files and copies them to the cases folder
-function get_volatile(){
-    cd $mount_dir
-    makegreen "Searching for DMP files"
-    find . -type f 2>/dev/null| grep -i "\.dmp$" |while read d; do rsync -aRq $d $case_dir/Artifact/$drv|| echo "RSYNC COPY ERROR!!! $d" |tee -a  $case_dir/Acquisition.log.txt;done
-    makegreen "Searching for HIBERFIL.SYS"
-    find . -maxdepth 1 -type f 2>/dev/null | grep -i hiberfil.sys | while read d; do echo "copying $d" && rsync -aRq "$d" $case_dir/Artifact/$drv|| echo "RSYNC COPY ERROR!!! $d" |tee -a  $case_dir/Acquisition.log.txt;done
-    makegreen "Searching for PAGEFILE.SYS"
-    find . -maxdepth 1 -type f 2>/dev/null | grep -i pagefile.sys | while read d; do echo "copying $d" && rsync -aRq "$d" $case_dir/Artifact/$drv|| echo "RSYNC COPY ERROR!!! $d" |tee -a  $case_dir/Acquisition.log.txt;done
-    makegreen "Searching for SWAPFILE.SYS files"
-    find . -maxdepth 1 -type f 2>/dev/null | grep -i swapfile.sys | while read d; do echo "copying $d" && rsync -aRq "$d" $case_dir/Artifact/$drv|| echo "RSYNC COPY ERROR!!! $d" |tee -a  $case_dir/Acquisition.log.txt;done
-    makegreen "$drv Volatile Acquisition Complete!"
-}
-
-################TO DO####################
-
-
-#Create acquisition for VSS
-######  TAR usnjrnl to
-
-
 
 # Find and extract Outlook files
 function extract_Outlook_pst_ost(){
-    mkdir -p $case_dir/Outlook
-    cd $case_dir/$comp_name/Outlook
-    makegreen "Searching for OUTLOOK EMAIL Files to extract (pffexport)" 
-    [ -d "${case_dir}/$comp_name/Outlook" ] && find $case_dir/$comp_name/Artifact -type f 2>/dev/null |grep -va \/vss.\/|grep -Ei "\.pst$"\|"\.ost$"|while read d; 
-    do 
-      pffexport "$d";
-    done
-    [ -d "${case_dir}/$comp_name/Outlook" ] && find $case_dir/$comp_name/Artifact -maxdepth 1 -type d 2>/dev/null|grep -o vss.$|while read d; 
+    cd $mount_dir/$user_dir/
+    counter=0
+    find "$mount_dir/$user_dir/" -maxdepth 2 ! -type l 2>/dev/null|grep -i ntuser.dat$ |while read ntuser_path;
     do
-      mkdir -p $d && cd $d
-      echo $PWD
-      find $case_dir/Artifact/$d -type f| grep -Ei "\.pst$"\|"\.ost$" 2>/dev/null|while read line; 
-      do 
-        pffexport "$line";
+      user_name=$( echo "$ntuser_path"|sed 's/\/$//'|awk -F"/" '{print $(NF-1)}')
+      makegreen "Searching for OUTLOOK EMAIL Files to extract (pffexport)"
+      find $mount_dir -type f 2>/dev/null |grep -Ei "\.pst$"\|"\.ost$"|while read d;
+      do
+        pffexport "$d" -t $case_dir/Triage/Outlook/$user_dir$counter && counter=$((counter +1))
       done
-      cd ..
     done
 }
 
-## Run Parseie.pl on index.dat files ##
-function parse_index.dat(){
-    cd $case_dir
-    makegreen "Searching for INDEX.DAT files (parseie.pl)"
-    sleep 1  
-     find -type f -size +5k|grep -i index.dat$|while read d; 
-
-    do 
-      parseie.pl -t -f "$d"|grep -Ea "^[0-9]{10}\|"| sed "s/|||/|${comp_name}||/"|tee  -a $case_dir/Timeline/TLN/index.dat.TLN.TMP;
-    done
-    cat $case_dir/Browser_Activity/index.dat.TLN.TMP 2>/dev/null| sort -rn| uniq | $case_dir/Browser_Activity/index.dat.TLN |tee -a  $case_dir/Timeline/Triage-Timeline.TLN.TMP && rm $case_dir/Browser_Activity/index.dat.TLN.TMP;
-    cat $case_dir/Browser_Activity/index.dat.TLN|awk -F'|' '{$1=strftime("%Y-%m-%d %H:%M:%S",$1)}{print $1","$2","$3","$4","$5}' |tee -a  $case_dir/Browser_Activity/index.dat.txt 
+# Collect Volatilile data files and copies them to the cases folder
+function get_volatile(){ 
+    cd $mount_dir
+    find -maxdepth 1 -iname "*file.sys" 2>/dev/null -print0| \
+    tar -rvf  $case_dir/$comp_name-volatile-files.tar --null -T - 
+    find -maxdepth 1 -iname "*hiberfil.sys" 2>/dev/null -print0| \
+    tar -rvf  $case_dir/$comp_name-volatile-files.tar --null -T - 
+    gzip -f $case_dir/$comp_name-volatile-files.tar
+    makegreen "Complete!!"
 }
+
 clear
 [ $(whoami) != "root" ] && makered "Siftgrab Requires Root!" && exit
 show_menu
