@@ -1,0 +1,37 @@
+manually installing install misc tools and apps that require user intervention
+
+#unrestricted extras has a eula that requires user intervention
+sudo apt-get install ubuntu-restricted-extras
+
+nirsoft tools
+https://download.nirsoft.net/nirsoft_package_enc_1.23.33.zip
+unzip nirsoft_package_enc_1.23.33.zip -P nirsoft9876$
+chmod 755 *.exe
+chmod -R 755 NirSoft/*
+wine nirlauncher.exe
+
+bulk extractor
+git clone https://github.com/simsong/bulk_extractor.git /usr/local/src/bulk_extractor
+chmod 755 CONFIGURE_UBUNTU18LTS.bash 
+./CONFIGURE_UBUNTU18LTS.bash 
+*******************************************************************
+        Configuring Ubuntu 18.04 LTS to compile bulk_extractor.
+*******************************************************************
+
+Install Ubuntu 18.04 and follow these commands:
+
+# apt-get install git
+# git clone --recursive https://github.com/simsong/bulk_extractor.git
+# cd bulk_extractor
+# sudo chmod 755 etc/CONFIGURE_UBUNTU18LTS.bash 
+# sudo bash etc/CONFIGURE_UBUNTU18LTS.bash 
+# sudo chmod 755 bootstrap.sh
+# sudo bootstrap.sh
+# sudo ./configure
+# sudo make && sudo make install
+
+
+Malscan
+#sudo wget -O /usr/local/src/malscan https://raw.githubusercontent.com/malscan/malscan/1.x/installer
+/usr/local/src/installer
+
