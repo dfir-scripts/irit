@@ -145,7 +145,7 @@ function yes-no(){
       read -p "(Y/N)?"
       [ "$(echo $REPLY | tr [:upper:] [:lower:])" == "y" ] &&  yes_no="yes";
 }
-##  Main Siftgrab Display Menu Function
+##  Main Siftgrab Menu
 echo ""
 function show_menu(){
     GRAY=`echo "\033[0;37m"`
@@ -156,25 +156,15 @@ function show_menu(){
     echo -e "*****************************************************"
     echo -e "${GRAY}Mount and Extract Information From Windows Disk Images${NORMAL}"
     echo -e "*****************************************************"
-    echo -e "** 1) ${GREEN}Mount a Disk Image ( E01, Raw, AFF, QCOW VMDK, VHDX)${NORMAL}"
-    echo -e "** 2)${GREEN} Process Windows Artifacts from Mounted image or Saved Data${NORMAL}"
-    echo -e "** 3) ${GREEN}Acquire and Save Important Windows Files from Mounted Image(s)${NORMAL}"
-    echo -e "** 4) ${GREEN}Find and Acquire Volatile Data Files${NORMAL}"
-    echo -e "**    ${GREEN}(hiberfil.sys, pagefile, swapfile.sys,)${NORMAL}"
-    echo -e "** 5) ${GREEN}Extract Outlook OST/PST Mail Files ${NORMAL}"
-    echo -e "** 6) ${GREEN}View Results(lf) ${NORMAL}"
-    echo -e "*****************************************************${NORMAL}"
-    echo -e "${GRAY}More Tools ${NORMAL}"
-    echo -e "*****************************************************"
-    echo -e "**  7) ${GREEN}Autopsy GUI${NORMAL}"
-    echo -e "**  8) ${GREEN}Parse $LOGFILE ${NORMAL}"
-    echo -e "**  9) ${GREEN}Extract $INDX ${NORMAL}"
-    echo -e "** 10) ${GREEN}NirSoft Tools ${NORMAL}"
-    echo -e "** 11) ${GREEN}Bulk Extrator(BEViewer) ${NORMAL}"
-    echo -e "** 12) ${GREEN}Extract Browser History ${NORMAL}"
-    echo -e "** 12) ${GREEN} Scan Volume or files with ClamAV${NORMAL}"
-    echo -e "** 13) ${GREEN} Readme${NORMAL}"
-    echo -e "** 14) ${GREEN} Scan for Malcious Office Documents${NORMAL}"
+    echo -e "**  1) ${GREEN} Mount a Disk Image ( E01, Raw, AFF, QCOW VMDK, VHDX)${NORMAL}"
+    echo -e "**  2)${GREEN}  Process Windows Artifacts from Mounted Image or Offline Files${NORMAL}"
+    echo -e "**  3) ${GREEN} Acquire Windows Forensic Artifacts from Mounted Image(s)${NORMAL}"
+    echo -e "**  4) ${GREEN} Find and Acquire Volatile Data Files${NORMAL}"
+    echo -e "**     ${GREEN} (hiberfil.sys, pagefile, swapfile.sys,)${NORMAL}"
+    echo -e "**  5) ${GREEN} Extract Outlook OST/PST Mail Files ${NORMAL}"
+    echo -e "**  6) ${GREEN} Volatility3 ${NORMAL}"
+    echo -e "**  7) ${GREEN} Browse Files (lf)${NORMAL}"
+    echo -e "**  8) ${GREEN} Readme${NORMAL}"
     echo ""
     echo -e "Select a menu option number or ${RED}enter to exit. ${NORMAL}"
     read opt
@@ -186,10 +176,7 @@ while [ opt != '' ]
         case $opt in
         #Menu Selection 1: Mount disk image to $mount_dir 
         1) clear;
-        *********************
-        ###### COMMAND EXECUTION ############# 
-clear
-#Get drive status and process any cli parameters
+           #Get drive status and process any cli parameters
            [ -e "/mnt/raw" ] || mkdir -p /mnt/raw
            mount_status    
            umount_all
@@ -202,9 +189,9 @@ clear
            mount_point
            # Send to mounting function based on image type
            [ -f "$image_name"002"" ] &&  echo $multi "Multiple raw disk segments detected, mounting with affuse" && mount_aff
-           echo $image_type | grep -qie "AFF$" && mount_aff
+           echo $image_type | grep -qie "AFF$\|VHD$\|VHDX$" && mount_aff
            echo $image_type | grep -ie "E01$\|S01" && mount_e01
-           echo $image_type | grep -ie "VMDK$\|VDI$\|QCOW2$\|VHD$\|VHDX$" && mount_nbd 
+           echo $image_type | grep -ie "VMDK$\|VDI$\|QCOW2$" && mount_nbd 
            # If no image type detected, process as raw
            [ "$image_src" == "" ] && image_src="${ipath}"
            is_device=$(echo "$image_src" | grep -i "/dev/sd")
@@ -213,7 +200,7 @@ clear
            # Set image offset if needed
            set_image_offset
            # Decrypt bitlocker if "-b" is specified
-           [ "${1}" == "-b" ] && bit_locker_mount
+           #[ "${1}" == "-b" ] && bit_locker_mount
            # mount image and detect any volume shadow copies
            mount_image
            read -n1 -r -p "Press any key..." key
@@ -221,12 +208,12 @@ clear
             show_menu;
             ;;
             
-        #Menu Selection 2: Process Artifacts Collected using RegRipper and other Tools
+        #Menu Selection 2: Process Artifacts on mounted image or saved data
         2) clear;
            #####################################################################
            ######                 Processing Functions                    ######
            #####################################################################
-           makegreen "Process Artifacts for Triage"
+           makegreen "Process Windows Artifacts"
            set_msource_path
            set_windir
            get_computer_name
@@ -259,7 +246,6 @@ clear
            cp_setupapi
            extract_Jobs
            ADS_extract
-           #extract MFT into TLN and CSV timelines
            analyze_mft
            find_deleted_files
            [ "$usn" ] && parse_usn 
@@ -272,10 +258,9 @@ clear
            du -sh $case_dir/Triage
            makegreen Process Complete!
            read -n1 -r -p "Press any key to continue..." key
-           #####################################################
            show_menu;
             ;;
-        #Menu Selection 3: Acquire Data from Mounted Disks or Image Excerpts
+        #Menu Selection 3: Acquire Windows Artifacts from Mounted Disks or Images
         3) clear;
            # Set Preferences
            makegreen "Get a copy of Windows Artifacts"
@@ -316,7 +301,7 @@ clear
            clear;
            show_menu;
             ;;
-        #Menu Selection 6:  Collect files containing volatile data from mounted image
+        #Menu Selection 6:  Collect Windows volatile data from mounted image
         4) clear; 
            set_msource_path
            set_dsource_path
@@ -328,82 +313,43 @@ clear
            clear;
            show_menu;  
             ;; 			
-        #Menu Selection 5: Collect Outlook Email OST/PST files
+        #Menu Selection 5: Collect Outlook Email OST/PST files for Windows Images
         5) clear; 
            makegreen "Extract Windows PST/OST file"
            set_msource_path
            set_windir
-           get_computer_name
+           set_computer_name
            set_dsource_path
            set_windir
            get_computer_name
            create_triage_dir
-           #get_outlook_data
            extract_Outlook_pst_ost
-           #find $case_dir/Artifact -type f| tee -a  $case_dir/Acquisition.log.txt
            find $case_dir -empty -delete
            read -n1 -r -p "Press any key to continue..." key
            makegreen "Complete!!"
            clear;
            show_menu;  
             ;; 
-        #Menu Selection 6: Launch Ranger
+        #Menu Selection 6: Launch Volatility3
         6) clear;
-           lf
+           cd /opt/share/volatility3
+           gnome-terminal -- bash -c "./vol.py; exec bash"
            clear;
            show_menu;  
             ;; 
-        #Menu Selection 5:Autopsy GUI
-        7) clear; 
-           /usr/local/src/autopsy/autopsy-4.16.0/bin/autopsy
+        #Menu Selection 7:Browse File System 
+        7) clear;
+           cd /cases
+           gnome-terminal -- bash -c "lf; exec bash"
            clear;
            show_menu;  
             ;; 
-        #Menu Selection 8: Run AnalyzeMFT 
-        8) clear;
-           makegreen "Create TLN from $MFT";
-           analyze_mft
-           read -n1 -r -p "Press any key to continue..." key
-           clear 
-           show_menu;
-            ;;
-        #Menu Selection 9: Scan Mounted Drive with ClamAV
-        9) clear; 
-           makegreen "Scan with ClamAV";
-           set_msource_path
-           set_dsource_path
-           set_windir
-           get_computer_name
-           clamscan -h
-           makered "SCAN FILES WITH CLAMAV"        
-           find /var/lib/clamav/|grep -i c.d$|while read d; do printf "$d\t" && stat -c %y "$d";done
-           makegreen "Verify the above ClamAV Signatures are up to date"
-           makegreen "Run freshclam or remove/replace old signature files to update"
-           echo ""
-           echo ""
-           makegreen "Enter to start scan or change cmd line as needed"
-           mkdir -p $case_dir/AVScan
-           [ "$(ls -A $mount_dir)" ] && read -e -p "" -i "clamscan -rzi  $mount_dir -l $case_dir/AVScan/Clam-Scan-Results.txt" clam_scan_cmd 
-           [ "$(ls -A $mount_dir)" ] && run_clam_scan
-           echo ""
-           read -n1 -r -p "Press any key to continue..." key
-           clear;
-           show_menu;  
-            ;;
-        #Menu Selection 10: ReadMe
-        10) clear;
-           read_me
-           read -n1 -r -p "Press any key to continue..." key
-           clear 
-           show_menu;
-            ;;
-        #Menu Selection 10: ReadMe
-        11) clear;
-           read_me
-           # oleid, olevba etc, etc
-           read -n1 -r -p "Press any key to continue..." key
-           clear 
-           show_menu;
+        #Menu Selection 10: Siftgrab ReadMe
+        9) clear;
+            read_me
+            read -n1 -r -p "Press any key to continue..." key
+            clear 
+            show_menu;
             ;;
         x)exit;
         ;;
@@ -434,7 +380,7 @@ mount_status(){
 function image_source(){
       read -e -p "Enter Image File or Device Path: " -i "" ipath 
       image_type=$(echo "$ipath"|awk -F . '{print toupper ($NF)}')
-      [ ! -f "${ipath}" ] && [ ! -b "${ipath}" ] && makered "File or Device does not exist.." && sleep 2 && clear && exit
+      [ ! -f "${ipath}" ] && [ ! -b "${ipath}" ] && makered "File or Device does not exist.." && sleep 2 && clear && show_menu
       image_name=$(echo $ipath|sed 's/\(.*\)\..*/\1\./')
       [ $image_type == "ISO" ] && return 1
       multi=$image_name"002"
@@ -455,7 +401,7 @@ function mount_point(){
       mkdir -p $mount_dir
       [ "$mount_dir" ] || mkdir -p "$mount_dir"
       [ "$(ls -A $mount_dir)" ] && umount $mount_dir -f -A
-      [ "$(ls -A $mount_dir)" ] && echo "$mount_dir busy, try different mount point or reboot" && sleep 2 && exit
+      [ "$(ls -A $mount_dir)" ] && echo "$mount_dir busy, try different mount point or reboot" && sleep 2 && show_menu
       echo ""
 }
 
@@ -464,11 +410,7 @@ function set_image_offset(){
      mmls $image_src && \
      makegreen "Set Partition Offset" && \
      read -e -p "Enter the starting block: " starting_block && \
-     # Next line has been commented. Use default block size of 512 
-     # read -e -p "Set disk block size:  " -i "512" block_size && \
-     partition_offset=$(echo $(($starting_block * 512))) && \
-     makegreen "Offset: $starting_block * 512 = $partition_offset" && \
-     offset="offset=$partition_offset" 
+     # Use default block size of 512 
 }
 
 #Mount images in expert witness format as raw image to /mnt/raw
@@ -901,7 +843,6 @@ function get_firefox(){
 ########END DATA ACQUISITION FUNCTIONS######
     
 ######### PROCESSING FUNCTIONS##############
-
 #Run select RegRipper plugins on Software Registry
 function rip_software(){
     cd $case_dir
@@ -926,7 +867,6 @@ function rip_software(){
       rip.pl -r "$d" -p srum |grep -va "^$"|tee -a $case_dir/Triage/Program_Execution/Srum-$comp_name.txt;
       rip.pl -r "$d" -p run |grep -va "^$"|tee -a $case_dir/Triage/Program_Execution/Srun-$comp_name.txt;
     done
-    # rip all tlns to tempfile
     find $mount_dir/$winsysdir/$regdir -maxdepth 1 -type f 2>/dev/null | grep -i "\/software$"| while read d;
     do 
       rip.pl -aT -r $d |sed "s/|||/|${comp_name}|${user_name}|/" >> $tempfile  
@@ -1220,7 +1160,6 @@ function firefox2tln(){
           [ "$timestamp" != "" ] && echo $tlntime$tlninfo | >> $tempfile
         done
       done
-
 }
 
 
@@ -1278,7 +1217,6 @@ function skype2tln(){
         sed 's|^\||0\||' | sed "s/|||/|${comp_name}|${user_name}|/" | tee -a $tempfile  
       done 
     done
-
 }
 
 #Timeline Alternate Data Streams
@@ -1436,6 +1374,7 @@ function analyze_mft(){
     cat $case_dir/Triage/Timeline/MFT/MFT-$comp_name.TLN.txt | awk -F'|' '{$1=strftime("%Y-%m-%d %H:%M:%S",$1)}{print $1","$2","$3","$4","$5}'| \
     tee -a $case_dir/Triage/Timeline/MFT/MFT-$comp_name.csv 
 }
+
 function find_deleted_files(){
     cd $mount_dir
     makegreen "Finding Deleted Files in \$MFT Standby..."
