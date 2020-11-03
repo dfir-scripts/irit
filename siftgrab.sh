@@ -145,7 +145,7 @@ function yes-no(){
       read -p "(Y/N)?"
       [ "$(echo $REPLY | tr [:upper:] [:lower:])" == "y" ] &&  yes_no="yes";
 }
-##  Main Siftgrab Menu
+##  Main Siftgrab Display Menu Function
 echo ""
 function show_menu(){
     GRAY=`echo "\033[0;37m"`
@@ -162,9 +162,8 @@ function show_menu(){
     echo -e "**  4) ${GREEN} Find and Acquire Volatile Data Files${NORMAL}"
     echo -e "**     ${GREEN} (hiberfil.sys, pagefile, swapfile.sys,)${NORMAL}"
     echo -e "**  5) ${GREEN} Extract Outlook OST/PST Mail Files ${NORMAL}"
-    echo -e "**  6) ${GREEN} Volatility3 ${NORMAL}"
-    echo -e "**  7) ${GREEN} Browse Files (lf)${NORMAL}"
-    echo -e "**  8) ${GREEN} Readme${NORMAL}"
+    echo -e "**  6) ${GREEN} Browse Files (lf)${NORMAL}"
+    echo -e "**  7) ${GREEN} Readme${NORMAL}"
     echo ""
     echo -e "Select a menu option number or ${RED}enter to exit. ${NORMAL}"
     read opt
@@ -176,6 +175,9 @@ while [ opt != '' ]
         case $opt in
         #Menu Selection 1: Mount disk image to $mount_dir 
         1) clear;
+        *********************
+        ###### COMMAND EXECUTION ############# 
+           clear
            #Get drive status and process any cli parameters
            [ -e "/mnt/raw" ] || mkdir -p /mnt/raw
            mount_status    
@@ -189,9 +191,9 @@ while [ opt != '' ]
            mount_point
            # Send to mounting function based on image type
            [ -f "$image_name"002"" ] &&  echo $multi "Multiple raw disk segments detected, mounting with affuse" && mount_aff
-           echo $image_type | grep -qie "AFF$\|VHD$\|VHDX$" && mount_aff
+           echo $image_type | grep -qie "AFF$" && mount_aff
            echo $image_type | grep -ie "E01$\|S01" && mount_e01
-           echo $image_type | grep -ie "VMDK$\|VDI$\|QCOW2$" && mount_nbd 
+           echo $image_type | grep -ie "VMDK$\|VDI$\|QCOW2$\|VHD$\|VHDX$" && mount_nbd 
            # If no image type detected, process as raw
            [ "$image_src" == "" ] && image_src="${ipath}"
            is_device=$(echo "$image_src" | grep -i "/dev/sd")
@@ -200,7 +202,7 @@ while [ opt != '' ]
            # Set image offset if needed
            set_image_offset
            # Decrypt bitlocker if "-b" is specified
-           #[ "${1}" == "-b" ] && bit_locker_mount
+           [ "${1}" == "-b" ] && bit_locker_mount
            # mount image and detect any volume shadow copies
            mount_image
            read -n1 -r -p "Press any key..." key
@@ -208,12 +210,9 @@ while [ opt != '' ]
             show_menu;
             ;;
             
-        #Menu Selection 2: Process Artifacts on mounted image or saved data
+        #Menu Selection 2: Process Artifacts Collected using RegRipper and other Tools
         2) clear;
-           #####################################################################
-           ######                 Processing Functions                    ######
-           #####################################################################
-           makegreen "Process Windows Artifacts"
+           makegreen "Process Artifacts for Triage"
            set_msource_path
            set_windir
            get_computer_name
@@ -249,7 +248,7 @@ while [ opt != '' ]
            analyze_mft
            find_deleted_files
            [ "$usn" ] && parse_usn 
-           # Clean-up empty Triage directories
+           # Clean-up 
            find $case_dir -empty -delete
            makegreen "Removing Duplicates..."
            echo "Please Wait..."
@@ -260,7 +259,7 @@ while [ opt != '' ]
            read -n1 -r -p "Press any key to continue..." key
            show_menu;
             ;;
-        #Menu Selection 3: Acquire Windows Artifacts from Mounted Disks or Images
+        #Menu Selection 3: Acquire Data from Mounted Disks or Image Excerpts
         3) clear;
            # Set Preferences
            makegreen "Get a copy of Windows Artifacts"
@@ -294,14 +293,13 @@ while [ opt != '' ]
            get_scheduled_tasks
            [ "$get_logs" ] && get_logfiles 
            gzip -f $case_dir/$comp_name-acquisition.tar
-           # End of Acquisition 
            makegreen "Data Acquisition Complete!"
            du -sh $case_dir/$comp_name-acquisition.tar.gz
            read -n1 -r -p "Press any key to continue..." key
            clear;
            show_menu;
             ;;
-        #Menu Selection 6:  Collect Windows volatile data from mounted image
+        #Menu Selection 4:  Collect Volatile files from mounted image
         4) clear; 
            set_msource_path
            set_dsource_path
@@ -313,7 +311,7 @@ while [ opt != '' ]
            clear;
            show_menu;  
             ;; 			
-        #Menu Selection 5: Collect Outlook Email OST/PST files for Windows Images
+        #Menu Selection 5: Collect Outlook Email OST/PST files
         5) clear; 
            makegreen "Extract Windows PST/OST file"
            set_msource_path
@@ -330,26 +328,19 @@ while [ opt != '' ]
            clear;
            show_menu;  
             ;; 
-        #Menu Selection 6: Launch Volatility3
+        #Menu Selection 6:Lf File Browser
         6) clear;
-           cd /opt/share/volatility3
-           gnome-terminal -- bash -c "./vol.py; exec bash"
-           clear;
-           show_menu;  
-            ;; 
-        #Menu Selection 7:Browse File System 
-        7) clear;
            cd /cases
            gnome-terminal -- bash -c "lf; exec bash"
            clear;
-           show_menu;  
-            ;; 
-        #Menu Selection 10: Siftgrab ReadMe
-        9) clear;
-            read_me
-            read -n1 -r -p "Press any key to continue..." key
-            clear 
-            show_menu;
+           show_menu;
+            ;;
+        #Menu Selection 7:Siftgrab Readme
+        7) clear;
+           read_me
+           read -n1 -r -p "Press any key to continue..." key
+           clear;
+           show_menu;
             ;;
         x)exit;
         ;;
@@ -410,7 +401,11 @@ function set_image_offset(){
      mmls $image_src && \
      makegreen "Set Partition Offset" && \
      read -e -p "Enter the starting block: " starting_block && \
-     # Use default block size of 512 
+     # Next line has been commented. Use default block size of 512 
+     # read -e -p "Set disk block size:  " -i "512" block_size && \
+     partition_offset=$(echo $(($starting_block * 512))) && \
+     makegreen "Offset: $starting_block * 512 = $partition_offset" && \
+     offset="offset=$partition_offset" 
 }
 
 #Mount images in expert witness format as raw image to /mnt/raw
@@ -843,6 +838,7 @@ function get_firefox(){
 ########END DATA ACQUISITION FUNCTIONS######
     
 ######### PROCESSING FUNCTIONS##############
+
 #Run select RegRipper plugins on Software Registry
 function rip_software(){
     cd $case_dir
@@ -867,6 +863,7 @@ function rip_software(){
       rip.pl -r "$d" -p srum |grep -va "^$"|tee -a $case_dir/Triage/Program_Execution/Srum-$comp_name.txt;
       rip.pl -r "$d" -p run |grep -va "^$"|tee -a $case_dir/Triage/Program_Execution/Srun-$comp_name.txt;
     done
+    # rip all tlns to tempfile
     find $mount_dir/$winsysdir/$regdir -maxdepth 1 -type f 2>/dev/null | grep -i "\/software$"| while read d;
     do 
       rip.pl -aT -r $d |sed "s/|||/|${comp_name}|${user_name}|/" >> $tempfile  
@@ -1160,6 +1157,7 @@ function firefox2tln(){
           [ "$timestamp" != "" ] && echo $tlntime$tlninfo | >> $tempfile
         done
       done
+
 }
 
 
@@ -1217,6 +1215,7 @@ function skype2tln(){
         sed 's|^\||0\||' | sed "s/|||/|${comp_name}|${user_name}|/" | tee -a $tempfile  
       done 
     done
+
 }
 
 #Timeline Alternate Data Streams
@@ -1374,7 +1373,6 @@ function analyze_mft(){
     cat $case_dir/Triage/Timeline/MFT/MFT-$comp_name.TLN.txt | awk -F'|' '{$1=strftime("%Y-%m-%d %H:%M:%S",$1)}{print $1","$2","$3","$4","$5}'| \
     tee -a $case_dir/Triage/Timeline/MFT/MFT-$comp_name.csv 
 }
-
 function find_deleted_files(){
     cd $mount_dir
     makegreen "Finding Deleted Files in \$MFT Standby..."
