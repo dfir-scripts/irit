@@ -1245,11 +1245,11 @@ function prefetch_extract(){
     sleep 1 
     find "/$mount_dir/$windir/" -maxdepth 2 -type d -iname "Prefetch" |sed 's/$/\//'| while read d; 
     do 
-      python /usr/local/bin/prefetchruncounts.py "$d" -o $case_dir/Triage/Program_Execution/$comp_name
+      python /usr/local/bin/prefetchruncounts.py "$d" -o $case_dir/Triage/Program_Execution/$comp_name-prefetch
     done
 
-    [ -f $case_dir/Triage/Program_Execution/$comp_name_prefetch_run_count.csv ] && \
-    cat $case_dir/Triage/Program_Execution/$comp_name_prefetch_run_count.csv | while read d; 
+    [ -f $case_dir/Triage/Program_Execution/$comp_name-prefetch_run_count.csv ] && \
+    cat $case_dir/Triage/Program_Execution/$comp_name-prefetch_run_count.csv | while read d; 
     do
       timestamp=$(echo $d| awk -F',' '{print $1}'| grep -Eo '^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9]')
       [ "$timestamp" != "" ] && tlntime=$(date -d "$timestamp"  +"%s" 2>/dev/null)
