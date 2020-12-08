@@ -1245,7 +1245,7 @@ function prefetch_extract(){
     sleep 1 
     find "/$mount_dir/$windir/" -maxdepth 2 -type d -iname "Prefetch" |sed 's/$/\//'| while read d; 
     do 
-      python /usr/local/bin/prefetchruncounts.py "$d" -o $case_dir/Triage/Program_Execution/$comp_name_prefetch_run_count.csv
+      python /usr/local/bin/prefetchruncounts.py "$d" -o $case_dir/Triage/Program_Execution/$comp_name
     done
 
     [ -f $case_dir/Triage/Program_Execution/$comp_name_prefetch_run_count.csv ] && \
@@ -1321,8 +1321,8 @@ extract_objects_data(){
     sleep 1
     find $winsysdir -maxdepth 3 -type f 2>/dev/null  | grep -i '\/objects.data$'|sed 's|^\./||'|while read d;
     do 
-      python /usr/local/bin/PyWMIPersistenceFinder.py "$d" |tee -a $case_dir/Triage/Persistence/WMI-$comp_name.txt; 
-      python /usr/local/bin/CCM_RUA_Finder.py -i "$d" -o $case_dir/Triage/Program_Execution/CCM-RecentApps-$comp_name.csv 
+      python2 /usr/local/bin/PyWMIPersistenceFinder.py "$d" |tee -a $case_dir/Triage/Persistence/WMI-$comp_name.txt; 
+      python2 /usr/local/bin/CCM_RUA_Finder.py -i "$d" -o $case_dir/Triage/Program_Execution/CCM-RecentApps-$comp_name.csv 
     done
 }
 
