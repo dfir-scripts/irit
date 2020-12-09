@@ -773,7 +773,7 @@ function get_ActivitiesCache(){
     cd $mount_dir
     makegreen "Saving ActivitiesCache.db"
     echo "#### ActivitiesCache.db ####" >> $case_dir/Acquisition.log.txt
-    find $user_dir//AppData/Local/ConnectedDevicesPlatform/ -maxdepth 1 -mindepth 1 -type f -iname "ActivitiesCache.db" 2>/dev/null -print0|\
+    find $user_dir/*/AppData/Local/ConnectedDevicesPlatform/ -maxdepth 1 -mindepth 1 -type f -iname "ActivitiesCache.db" 2>/dev/null -print0|\
     tar -rvf  $case_dir/$comp_name-acquisition.tar --null -T - |tee -a $case_dir/Acquisition.log.txt 
     echo ""
 }
@@ -1245,16 +1245,18 @@ function prefetch_extract(){
     sleep 1 
     find "/$mount_dir/$windir/" -maxdepth 2 -type d -iname "Prefetch" |sed 's/$/\//'| while read d; 
     do 
-      python /usr/local/bin/prefetchruncounts.py "$d" -o $case_dir/Triage/Program_Execution/$comp_name-prefetch
+      python /usr/local/bin/prefetchruncounts.py "$d" -o $case_dir/Triage/Program_Execution/Prefetch-$comp_name
     done
 
-    [ -f $case_dir/Triage/Program_Execution/$comp_name-prefetch_run_count.csv ] && \
-    cat $case_dir/Triage/Program_Execution/$comp_name-prefetch_run_count.csv | while read d; 
+    find $case_dir/Triage/Program_Execution |grep run_count |while read d; 
     do
-      timestamp=$(echo $d| awk -F',' '{print $1}'| grep -Eo '^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9]')
-      [ "$timestamp" != "" ] && tlntime=$(date -d "$timestamp"  +"%s" 2>/dev/null)
-      tlninfo=$(echo $d| awk -F',' '{print "[Program Execution] File:"$2" Run Count:"$4" Vol_ID:"$8" "$11}')
-      [ "$timestamp" != "" ] && echo $tlntime"|prefetch|"$comp_name"||"$tlninfo | tee -a $tempfile
+    cat $case_dir/Triage/Program_Execution/$comp_name-prefetch_run_count.csv | while read line; 
+      do
+        timestamp=$(echo $line| awk -F',' '{print $1}'| grep -Eo '^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9]')
+        [ "$timestamp" != "" ] && tlntime=$(date -d "$timestamp"  +"%s" 2>/dev/null)
+        tlninfo=$(echo $line| awk -F',' '{print "[Program Execution] File:"$2" Run Count:"$4" Vol_ID:"$8" "$11}')
+        [ "$timestamp" != "" ] && echo $tlntime"|prefetch|"$comp_name"||"$tlninfo | tee -a $tempfile
+      done
     done
 }
 
