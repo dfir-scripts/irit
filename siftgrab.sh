@@ -229,6 +229,7 @@ while [ opt != '' ]
            regrip_sam
            regrip_amcache.hve
            regrip_syscache.hve_tln
+           prefetch_extract
            del_no_result
            lnkinfo
            recbin2tln
@@ -236,7 +237,6 @@ while [ opt != '' ]
            firefox2tln
            skype2tln
            extract_webcacheV
-           prefetch_extract
            winservices
            consolidate_timeline
            extract_objects_data
