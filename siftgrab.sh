@@ -1288,7 +1288,7 @@ function consolidate_timeline(){
     echo ""
     cat $tempfile | sort -rn |uniq | tee -a | tee -a $case_dir/Triage/Timeline/Triage-Timeline-$comp_name.TLN;
     cat $tempfile |awk -F'|' '{$1=strftime("%Y-%m-%d %H:%M:%S",$1)}{print $1","$2","$3","$4","$5}'|sort -rn | uniq| grep -va ",,,," |tee -a $case_dir/Triage/Timeline/Triage-Timeline-$comp_name.csv.txt
-    cat $case_dir/Triage/Timeline/Triage-Timeline-$comp_name.csv.txt| grep Skype | tee -a $case_dir/Triage/Browser_Activity/Skype-$comp_name.csv
+    cat $case_dir/Triage/Timeline/Triage-Timeline-$comp_name.csv.txt| grep Skype -a | tee -a $case_dir/Triage/Browser_Activity/Skype-$comp_name.csv
     cat $case_dir/Triage/Timeline/Triage-Timeline-$comp_name.csv.txt|grep -ia ",alert," |tee -a $case_dir/Triage/Alert/RegRipperAlerts-$comp_name.csv
     makegreen "Complete!"
 }
@@ -1352,10 +1352,13 @@ parse_index.dat(){
     find "$mount_dir/$user_dir/" -maxdepth 2 ! -type l|grep -i ntuser.dat$ |while read ntuser_path;
     do
       user_name=$( echo "$ntuser_path"|sed 's/\/$//'|awk -F"/" '{print $(NF-1)}')
-      find "$mount_dir/$user_dir/$user_name" -size +5k -maxdepth 4-type f 2>/dev/null | \
-      grep -i index.dat$ | sed 's|^\./||'|while read d; 
+      find "$mount_dir/$user_dir/$user_name/AppData" -size +5k -maxdepth 9 -type f 2>/dev/null | \
+      grep -i \/index.dat$ | sed 's|^\./||'|while read d; 
       do
-        perl /usr/local/bin/parseie.pl -t -f "$d" |tee -a $case_dir/Triage/Browser_Activity/Index.dat-$user_name-$comp_name.csv 
+        parseie.pl -t -s $comp_name -u $user_name -f "$d"| grep -Ev ietld\iecompat >> $tempfile
+        parseie.pl -t -s $comp_name -u $user_name -f "$d" | grep -v ietld\iecompat |\
+        awk -F'|' '{$1=strftime("%Y-%m-%d %H:%M:%S",$1)}{print $1","$2","$3","$4","$5}'| \
+        tee -a $case_dir/Triage/Browser_Activity/Index.dat-$user_name-$comp_name.csv
       done
     done
 }
