@@ -3,126 +3,137 @@ export TZ='Etc/UTC'
 function read_me(){
 echo "
 ##################################################################################
-#
-# Siftgrab is a command line Forensics Assist Tool for Windows Forensic Images 
-#
-# 
-# INSTALLATION:
-# Run the install script to load dependencies or the irit_install script on a fresh install of Ubuntu 20.04 to create your own forensics suite
+IRIT 
+A VMWare VM containing forensic tools for mounting and parsing Windows and other forensic images
 
-# Tools List
+SIFTGRAB 
+A collection of Open source forensic scripts wrapped into a shell menu that extracts Windows forensic metadata and also creates a TLN timeline.
+Previous version works on Sans Sift, the new version currently requires the IRIT VM to meet all dependancies and paths
+Output is text
 
+Features:
+Mounts most image types (Raw, E01, Aff. VMDK, qcow, VHDX)
 
+Extracts the following metadata from mounted images or image exerpts (e.g. Cylyr, X-ways skeleton images).  
 
-# "git clone https://github.com/siftgrab/siftgrab.git"
-# "chmod +x siftgrab/*.sh"
-# "cp siftgrab/* /usr/local/bin/"
-# 
-# Install Sqlite (required for chrome, firefox and skype history)
-# "sudo apt-get install sqlite3"
-# 
-# Update and patch Regripper to work on Linux: 
-# https://medium.com/@stdout_/installing-regripper-v2-8-on-ubuntu-26dc8bc8a2d3
-# 
-# 
-# Recommended: Install Ranger to view output
-# "sudo apt-get install ranger"
-# 
-# 
-# MOUNTING:
-# Selection 1 from siftrgrab menu or use ermount.sh from the command line
-# ACQUISITION:
-# After mounting image, choose menu item 2, 3, 4 and or 5 as needed
-# Or use filegrab.sh from Sift or a Live Boot USB/DVD to acquire files
-# PROCESSING:
-# Single or multiple cases procesessing produces timelines and other extracted registry information
-# Will process data exported from tools like cylr and for most artifacts, data to process does not have to folllow Windows heirarchy.
-# Use individual scripts below to directly parse mounted volumes
-# To maintain identity when processing multiple cases, place evidence items in separate
-# directories to identify each computer or dataset and a parent folder named cases.
-# 
-# Use the default /cases folder on Sift or follow the directory structure listed below to process metadata from multiple Windows computers:
-# Select Number 6 from the Siftgrab menu and set /mnt/hgfs/F/cases as your source 
-#
-#          /mnt/hgfs/F/cases/Server1
-#          /mnt/hgfs/F/cases/CONTROLLER
-#          /mnt/hgfs/F/cases/myLabtop
-#          /mnt/hgfs/F/cases/DESKTOP-Q8822
-#
-# 
-# Individual scripts to perform specific tasks
-# 
-# ads2tln.sh Lists Alternate Data Streams on a mounted NTFS Volume
-# chrome2tln.sh Extracts Chrome History, downloads and cookies
-# ermount.sh Mounts an E01 or raw image using ewfmount
-# filegrab.sh Creates an image excerpt from a mounted Windows disk image
-# firefox2tln.sh Extract FireFox History, Downloads,cookies
-# recbin2tln.sh Extracts metadata from the recycle bin "$I" files
-# skype2tln.sh Extracts Skype Logs
-# tln2csv.sh Converts a TLN file to CSV with human readable timestamps
-# csv2tln.sh Converts a five columnar CSV timeline file to TLN
-# rip.pl2linux Changes and then copies original rip.pl (Rip v.2.8_20180406) to rip.new
-# Then replace old version of rip.pl( e.g. cp rip.new /usr/local/bin/rip.pl && cp rip.new /usr/share/regripper/rip.pl)
-# rip.new Latest rip.pl (v.2.8_20180406) modified for use in SANS Sift
-#
-#
-# Automation and extraction is made possible by using and the following tools/libraries found on Sift:
-#  ##############https://github.com/sans-dfir/sift
-#  https://github.com/dkovar/analyzeMFT
-#  ##############https://github.com/keydet89/RegRipper3.0
-#  https://github.com/obsidianforensics/hindsight
-#  ##############https://github.com/keydet89/Tools
-#  ############## https://www.clamAV.net
-#  ##############https://github.com/libyal/libpff/blob/master/pfftools
-#  ##############http://download.savannah.gnu.org/releases/attr/
-#  ##############https://github.com/libyal/libevtx
-#  ##############https://github.com/decalage2/oletools/
-#  ##############https://github.com/libyal/libewf/
-#  ##############jq   part of sift
-#  ##############fdupes
-#  ##############ewftools
-#
-#
-#
-#  Individual functions can be enable or disabled with a comment "#" in the menu selection area
-#  The following acquisition and processing functions are disabled by default
-#  and can be re-enabled by removing the comment "#" that calls the function
-#      get_logfiles       (Acquires c:\Windows\System32\Logs\* \inetpub\..\..\ *.log)
-#      get_browser_cache  (Acquires Firefox,IE and Chrome Browser Cache)
-#      extract_webcacheV  (Extract WebcacheV...dat using EseDBExport )
-#      parse_index.dat    (Extract index.dat using parseie.pl) 
-#      export_evtx        (Extract Windows Event Logs to XML)
-#      
-#
-# Software Deleted keys do not extracted by default 
-# (search for key word "performance" within the scriptand un-comment the command to enable)
-# 
-#Update
-# Fixed ADS reporting empty dirs
-# Added collection of OBJECTS.DATA and recovered mof files
-# added collector registry files alt log and Sav logextensions from Windows\System32\Config
-# added collector ntuser.dat*
-# added Windows log files collection option (DNS, W3sv. firewall, evtx, etc)
-# process from mounted image
-# make siftgrab seamless between excerpt images and mounted volumes
-# Streamlined regripper process and added select plugins
-#parse object.data
-#TO  DO
+Regripper
+	All TLN plugins
+	NTUSER.DAT (All Plugins)
+	SAM (All Plugins)    
+	Security (All Plugins)
+	AmCache.hve
+	
+TLN Timeline
+	Regripper (All TLN plugins) 
+	$MFT
+	$USNJRNL
+	Chrome
+	Firefox
+	RecycleBin
+	ADS
+	LNK Files
+	AmCache
+	Services
+	Prefetch
+	Usrclass.dat
+	Index.dat
+	Chrome 
+	Firefox
+	RecyleBin
+	ADS
 
-# oleid
-# shellbags.py
-#density scout
-#signed files 
-#find /mnt/hgfs/G/cases/test/ |grep exe$ |while read d; do sudo python /usr/lib/python2.7/dist-packages/pefile.py "$d" 2>/dev/null|grep -A 2 SECURITY|grep -q "Size:                          0x0" && echo -e "UNSIGNED -Density" && densityscout -d "$d";done
-#pefile.py
+Acquires Windows files with forensic metata from Mounted images	
 
-#parse windows timeline files
+Additional output from siftgrab
+	Windows Activities
+	PyWmipersistence finder output
+	SCCM Recently Used Application
+	lnkinfo
+	
+TOOLS included in IRIT VM:
+Autopsy
+sleuthkit
+Volatility 2 and 3
+Bulk Extractor
+AnalyzeMFT.py
+DB Browser for SQLite
+pffexport
+usnparser
+oletools
+pefile
+stegosuite
+gddrescue
+jq
+chromium-browser
+graphviz
+wxhexeditor
+INDXParse
+CyberChef
+Didier Stevens Tools
+Powershell Core
+Density Scout
+CYLR
+WMIForensics 
+kacos2000/Queries
+kacos2000/WindowsTimeline
 
+YARA Rules:
+https://github.com/Neo23x0/signature-base.git
+https://github.com/reversinglabs/reversinglabs-yara-rules.git
+https://github.com/Yara-Rules/rules.git
 
-#create timeline CSV directory
-#removed Triage and Artifact Directories
-#removed Zone.Identifier from Browser info and consolidated ADS output into single file
-#renamed TLN.txt to TLN
+other scripts:
+prefetchruncounts.py
+winservices.py
+usn.py
+MFTINDX.py (Script in INDXParse used to find deleted files in $MFT)
+PyWMIPersistencefinder.py
+CCM_RUAfinder
+
+other packages:
+python2 and python3 
+liblnk-python
+python-registry
+libfwsi-python
+pycrypto
+yara-python
+capstone
+yara
+open-vm-tools-desktop
+gedit
+mlocate
+gparted
+attr
+gridsite-clients
+ewf-tools
+afflib-tools
+qemu-utils
+libbde-utils
+exfat-utils
+libvshadow-utils
+xmount
+cifs-utils
+guymager
+libesedb-utils
+liblnk-utils
+sqlitebrowser
+foremost
+testdisk
+ifuse
+python-wxtools
+libevtx-utils
+pff-tools
+python-jinja2 
+clamav 
+clamtk 
+rar 
+unrar 
+p7zip-full 
+p7zip-rar 
+papirus-icon-theme 
+wine 
+sqlite3
+npm
 ################################################################################
 "
 }      
