@@ -1250,7 +1250,7 @@ function prefetch_extract(){
 
     find $case_dir/Triage/Program_Execution |grep run_count |while read d; 
     do
-    cat $case_dir/Triage/Program_Execution/$comp_name-prefetch_run_count.csv | while read line; 
+    cat $case_dir/Triage/Program_Execution/Prefetch-$comp_name_run_count.csv | while read line; 
       do
         timestamp=$(echo $line| awk -F',' '{print $1}'| grep -Eo '^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9]')
         [ "$timestamp" != "" ] && tlntime=$(date -d "$timestamp"  +"%s" 2>/dev/null)
@@ -1336,16 +1336,13 @@ extract_winactivities(){
     find "$mount_dir/$user_dir/" -maxdepth 2 ! -type l|grep -i ntuser.dat$ |while read ntuser_path;
     do
       user_name=$( echo "$ntuser_path"|sed 's/\/$//'|awk -F"/" '{print $(NF-1)}')
-      find "$mount_dir/$user_dir/$user_name" -maxdepth 5 -type f 2>/dev/null | \
-      grep -i "/AppData/Local/ConnectedDevicesPlatform/ActivitiesCache.db$"| sed 's|^\./||'|while read d; 
+      find "$mount_dir/$user_dir/$user_name/AppData/Local/ConnectedDevicesPlatform" -maxdepth 5 -type f 2>/dev/null | \
+      grep -i "ActivitiesCache.db$"| sed 's|^\./||'|while read d; 
       do
         echo "$d"
-        sqlite3 "$d" "select * from Activity" |tee -a $case_dir/Triage/ActivitiesCache/Activity-$user_name-$comp_name.csv 
-        sqlite3 "$d" "select * from SmartLookup" |tee -a $case_dir/Triage/ActivitiesCache/SmartLookup-$user_name-$comp_name.csv 
-        sqlite3 "$d" "select * from Activity" |tee -a $case_dir/Triage/ActivitiesCache/Activity_PackageId-$user_name-$comp_name.csv 
+        sqlite3 "$d" ".read /usr/local/src/kacos2000/WindowsTimeline/WindowsTimeline.sql" | tee -a $case_dir/Triage/ActivitiesCache/Activity-$user_name-$comp_name.csv
       done
     done
-}
 
 #Parse IE History File Index.dat
 parse_index.dat(){
@@ -1362,7 +1359,6 @@ parse_index.dat(){
       done
     done
 }
-
 
 #Extract MFT to body file and then to TLN and csv files
 function analyze_mft(){
