@@ -1261,7 +1261,7 @@ function prefetch_extract(){
 
     find $case_dir/Triage/Program_Execution |grep run_count |while read d; 
     do
-    cat $case_dir/Triage/Program_Execution/Prefetch-$comp_name_run_count.csv | while read line; 
+    cat $d | while read line; 
       do
         timestamp=$(echo $line| awk -F',' '{print $1}'| grep -Eo '^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9]')
         [ "$timestamp" != "" ] && tlntime=$(date -d "$timestamp"  +"%s" 2>/dev/null)
