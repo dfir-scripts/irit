@@ -1354,6 +1354,7 @@ extract_winactivities(){
         sqlite3 "$d" ".read /usr/local/src/kacos2000/WindowsTimeline/WindowsTimeline.sql" | tee -a $case_dir/Triage/ActivitiesCache/Activity-$user_name-$comp_name.csv
       done
     done
+}
 
 #Parse IE History File Index.dat
 parse_index.dat(){
