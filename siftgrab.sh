@@ -1181,7 +1181,7 @@ function extract_webcacheV(){
       find /$mount_dir/$user_dir/$user_name/AppData/Local/Microsoft/Windows/WebCache -maxdepth 2 -type f -iname "WebcacheV*.dat" 2>/dev/null |while read d;
       do
 	    echo "Found $d"
-        /usr/bin/esedbexport -m all -t $case_dir/Triage/Browser_Activity/IEWebcache-$user_name-$comp_name "$d";
+        /usr/bin/esedbexport -t $case_dir/Triage/Browser_Activity/IEWebcache-$user_name-$comp_name "$d";
       done
     done
 }         
