@@ -241,16 +241,16 @@ while [ opt != '' ]
            regrip_amcache.hve
            regrip_syscache.hve_tln
            prefetch_extract
+           extract_objects_data
            del_no_result
            lnkinfo
            recbin2tln
            chrome2tln
            firefox2tln
            skype2tln
-           extract_webcacheV
+           #extract_webcacheV
            winservices
            consolidate_timeline
-           extract_objects_data
            extract_winactivities
            parse_index.dat     
            cp_setupapi
@@ -1334,7 +1334,6 @@ extract_objects_data(){
     sleep 1
     find $winsysdir -maxdepth 3 -type f 2>/dev/null  | grep -i '\/objects.data$'|sed 's|^\./||'|while read d;
     do 
-      python2 /usr/local/bin/PyWMIPersistenceFinder.py "$d" |tee -a $case_dir/Triage/Persistence/WMI-$comp_name.txt; 
       python2 /usr/local/bin/CCM_RUA_Finder.py -i "$d" -o $case_dir/Triage/Program_Execution/CCM-RecentApps-$comp_name.csv 
     done
 }
