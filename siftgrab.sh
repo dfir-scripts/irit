@@ -248,11 +248,11 @@ while [ opt != '' ]
            chrome2tln
            firefox2tln
            skype2tln
-           #extract_webcacheV
+           ls  /$mount_dir/Users/*/AppData/Local/Microsoft/Windows/WebCache/We* 2>/dev/null && extract_webcacheV
            winservices
            consolidate_timeline
            extract_winactivities
-           parse_index.dat     
+           ls  /$mount_dir/Users/*/AppData/Local/Microsoft/Windows/WebCache/We* 2>/dev/null || parse_index.dat      
            cp_setupapi
            extract_Jobs
            ADS_extract
