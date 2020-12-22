@@ -36,8 +36,9 @@ pip install analyzeMFT || pause
 #Apt Package Installations
 #PPA 
 add-apt-repository -y ppa:linuxgndu/sqlitebrowser || pause
+add-apt-repository -y ppa:papirus/papirus  || pause
 
-irit_apt_pkgs="net-tools curl git fdupes xpad wxhexeditor mlocate gparted attr sqlite3 gridsite-clients jq chromium-browser graphviz ewf-tools afflib-tools qemu-utils libbde-utils exfat-utils libvshadow-utils xmount cifs-utils guymager libesedb-utils liblnk-utils sqlitebrowser foremost python-wxtools libevtx-utils pff-tools sleuthkit python-jinja2 clamav clamtk rar unrar p7zip-full p7zip-rar wine npm"
+irit_apt_pkgs="dconf* net-tools curl git vim fdupes xpad gnome-terminal gnome-shell-extensions gnome-tweaks pcmanfm stegosuite yara gddrescue sleuthkit open-vm-tools-desktop gedit wxhexeditor mlocate gparted attr gridsite-clients jq chromium-browser graphviz ewf-tools afflib-tools qemu-utils libbde-utils exfat-utils libvshadow-utils xmount cifs-utils guymager libesedb-utils liblnk-utils sqlitebrowser foremost testdisk ifuse python-wxtools libevtx-utils pff-tools sleuthkit python-jinja2 clamav clamtk rar unrar p7zip-full p7zip-rar papirus-icon-theme wine sqlite3 npm"
 for apt_pkg in $irit_apt_pkgs;
 do
   sudo apt-get install $apt_pkg -y 
@@ -87,7 +88,12 @@ git clone https://github.com/williballenthin/INDXParse.git /usr/local/src/INDXPa
 git -C /usr/local/src/DidierStevensSuite pull || \
 git clone https://github.com/DidierStevens/DidierStevensSuite.git /usr/local/src/DidierStevensSuite
 
+#Git CyLR
+[ "$(ls -A /usr/local/src/CyLR/)" ] && \
+git -C https://github.com/orlikoski/CyLR.git pull || \
+git clone https://github.com/orlikoski/CyLR.git  /usr/local/src/CyLR
 
+#Git Volatility 2 and 3
 [ "$(ls -A /usr/local/src/volatility/)" ] && \
 git -C /usr/local/src/volatility pull || \
 git clone https://github.com/volatilityfoundation/volatility.git /usr/local/src/volatility 
@@ -96,6 +102,8 @@ chmod 755  /usr/local/src/volatility/*.py
 git -C /usr/local/src/volatility3 pull || \
 git clone https://github.com/volatilityfoundation/volatility3.git /usr/local/src/volatility3
 chmod 755  /usr/local/src/volatility/*.py
+
+#Git Yara Rules
 [ "$(ls -A /usr/local/src/yara/Neo23x0/signature-base/)" ] && \
 git -C /usr/local/src/yara/Neo23x0/signature-base pull|| \
 git clone https://github.com/Neo23x0/signature-base.git /usr/local/src/yara/Neo23x0/signature-base
@@ -105,25 +113,42 @@ git clone https://github.com/reversinglabs/reversinglabs-yara-rules.git /usr/loc
 [ "$(ls -A /usr/local/src/yara/yararules.com/)" ] && \
 git -C /usr/local/src/yara/yararules.com pull || \
 git clone https://github.com/Yara-Rules/rules.git /usr/local/src/yara/yararules.com
+
+#Git LogFileParser
 [ "$(ls -A /usr/local/src/LogFileParser/)" ] && \
 git -C /usr/local/src/LogFileParser pull|| \
 git clone https://github.com/jschicht/LogFileParser.git /usr/local/src/LogFileParser
-#install RegRipper.git and configure RegRipper
-/usr/local/src/irit/Install/RegRipper30-apt-git-Install.sh
+
+#Git kacos200 Scripts
+[ "$(ls -A /usr/local/src/kacos2000/Queries)" ] && \
+git -C /usr/local/src/kacos2000/Queries pull|| \
+git clone https://github.com/kacos2000/Queries.git /usr/local/src/kacos2000/Queries
+
+[ "$(ls -A /usr/local/src/kacos2000/WindowsTimeline)" ] && \
+git -C /usr/local/src/kacos2000/WindowsTimeline pull|| \
+git clone https://github.com/kacos2000/WindowsTimeline.git /usr/local/src/kacos2000/WindowsTimeline
+
+[ "$(ls -A /usr/local/src/cugu/afro )" ] && \
+git -C /usr/local/src/cugu/afro || \
+git clone https://github.com/cugu/afro.git /usr/local/src/cugu/afro
 
 #wget
 # Get IRIT Tools
 wget -O /tmp/PowerForensics.zip https://github.com/Invoke-IR/PowerForensics/releases/download/1.1.1/PowerForensics.zip
 unzip -o /tmp/PowerForensics.zip -d /root/.local/share/powershell/Modules/ && rm /tmp/PowerForensics.zip
-
+wget -O /usr/local/src/irit/siftgrab.sh https://raw.githubusercontent.com/siftgrab/irit/main/siftgrab.sh || pause 
 wget -O /usr/local/src/irit/ermount.sh https://raw.githubusercontent.com/siftgrab/EverReady-Disk-Mount/master/ermount.sh || pause 
 wget -O /usr/local/src/irit/prefetchruncounts.py https://raw.githubusercontent.com/siftgrab/prefetchruncounts/master/prefetchruncounts.py || pause 
 wget -O /usr/local/src/irit/winservices.py https://raw.githubusercontent.com/siftgrab/Python-Registry-Extraction/master/winservices.py || pause 
 wget -O /usr/local/src/irit/Install/RegRipper30-apt-git-Install.sh https://raw.githubusercontent.com/siftgrab/siftgrab/master/regripper.conf/RegRipper30-apt-git-Install.sh  || pause
+wget -O /usr/local/src/irit/Install/install-autospy.sh  https://raw.githubusercontent.com/siftgrab/irit/main/install-autospy.sh  || pause
 chmod -R 755 /usr/local/src/irit/*  || pause 
+[ -f "/usr/local/bin/siftgrab.sh" ]  ||cp /usr/local/src/irit/siftgrab.sh /usr/local/bin/siftgrab
 [ -f "/usr/local/bin/ermount" ]  ||cp /usr/local/src/irit/ermount.sh /usr/local/bin/ermount
 [ -f "/usr/local/bin/prefetchruncounts.py" ] || cp /usr/local/src/irit/prefetchruncounts.py /usr/local/bin/prefetchruncounts.py
 [ -f "/usr/local/bin/winservices.py" ] || cp /usr/local/src/irit/winservices.py /usr/local/bin/winservices.py
+#install RegRipper.git and configure RegRipper
+/usr/local/src/irit/Install/RegRipper30-apt-git-Install.sh
  
 # Get Density Scout
 wget -O /usr/local/src/densityscout/densityscout_build_45_linux.zip https://cert.at/media/files/downloads/software/densityscout/files/densityscout_build_45_linux.zip || pause
@@ -148,9 +173,13 @@ wget https://github.com/gokcehan/lf/releases/download/r17/lf-linux-amd64.tar.gz 
 sudo cp  /usr/local/src/lf/lf /usr/local/bin/
 #Get CyberChef
 wget -O /usr/local/src/cyberchef/CyberChef_v9.21.0.zip https://github.com/gchq/CyberChef/releases/download/v9.21.0/CyberChef_v9.21.0.zip || pause
-unzip -o /usr/local/src/cyberchef/CyberChef_v9.21.0.zip -d /usr/local/src/CyberChef_v9.21.0.zip && rm /usr/local/src/cyberchef/CyberChef_v9.21.0.zip
+unzip -o /usr/local/src/cyberchef/CyberChef_v9.21.0.zip -d /usr/local/src/cyberchef && rm /usr/local/src/cyberchef/CyberChef_v9.21.0.zip
 
 #Symbolic links
 [ -d "/opt/share" ] || ln -s /usr/local/src/ /opt/share
 
+#desktop
+#cp wallpaper
+#cp shortcutss and settings for desktop
+#install themes
 history -c
