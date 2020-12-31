@@ -409,7 +409,7 @@ function mount_point(){
 
 #Set partition offset for disk images
 function set_image_offset(){  
-     mmls $image_src && \
+     mmls $image_src 2>/dev/null && \
      makegreen "Set Partition Offset" && \
      read -e -p "Enter the starting block: " starting_block && \
      # Next line has been commented. Use default block size of 512 
