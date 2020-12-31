@@ -1416,7 +1416,7 @@ function extract_Outlook_pst_ost(){
       makegreen "Searching for OUTLOOK EMAIL Files to extract (pffexport)"
       find $mount_dir -type f 2>/dev/null |grep -Ei "\.pst$"\|"\.ost$"|while read d;
       do
-        pffexport "$d" -t $case_dir/Triage/Outlook/$user_dir$counter && counter=$((counter +1))
+        pffexport "$d" -t $case_dir/Triage/Outlook/$user_name$counter && counter=$((counter +1))
       done
     done
 }
