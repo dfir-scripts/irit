@@ -327,7 +327,7 @@ while [ opt != '' ]
            makegreen "Extract Windows PST/OST file"
            set_msource_path
            set_windir
-           set_computer_name
+           get_computer_name
            set_dsource_path
            set_windir
            get_computer_name
