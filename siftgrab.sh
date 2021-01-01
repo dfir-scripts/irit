@@ -257,7 +257,6 @@ while [ opt != '' ]
            extract_Jobs
            ADS_extract
            analyze_mft
-           find_deleted_files
            [ "$usn" ] && parse_usn 
            # Clean-up 
            find $case_dir -empty -delete
@@ -1379,21 +1378,7 @@ function analyze_mft(){
     cd $mount_dir
     makegreen "Analyzing \$MFT Standby..."
     [ -f "\$MFT" ] && \
-    python2 /usr/local/bin/analyzeMFT.py -p -f \$MFT --bodyfull --bodyfile=$case_dir/Triage/Timeline/MFT/MFT-$comp_name.body
-    [ -f $case_dir/Triage/Timeline/MFT/MFT-$comp_name.body ] && bodyfile.pl -f $case_dir/Triage/Timeline/MFT/MFT-$comp_name.body -s $comp_name | \
-    sort -rn |tee $case_dir/Triage/Timeline/MFT/MFT-$comp_name.TLN.txt && \
-    cat $case_dir/Triage/Timeline/MFT/MFT-$comp_name.TLN.txt | awk -F'|' '{$1=strftime("%Y-%m-%d %H:%M:%S",$1)}{print $1","$2","$3","$4","$5}'| \
-    tee -a $case_dir/Triage/Timeline/MFT/MFT-$comp_name.csv 
-}
-function find_deleted_files(){
-    cd $mount_dir
-    makegreen "Finding Deleted Files in \$MFT Standby..."
-    [ -f "\$MFT" ] && \
-	python2 /usr/local/src/INDXParse/MFTINDX.py -d \$MFT |tee -a $case_dir/Triage/Timeline/MFT/MFT-Deleted-$comp_name.body
-    [ -f $case_dir/Triage/Timeline/MFT/MFT-Deleted-$comp_name.body ] && bodyfile.pl -f $case_dir/Triage/Timeline/MFT/MFT-Deleted-$comp_name.body -s $comp_name | \
-    sort -rn |tee $case_dir/Triage/Timeline/MFT/MFT-Deleted-$comp_name.TLN.txt && \
-    cat $case_dir/Triage/Timeline/MFT/MFT-Deleted-$comp_name.TLN.txt | awk -F'|' '{$1=strftime("%Y-%m-%d %H:%M:%S",$1)}{print $1","$2","$3","$4","$5}'| \
-    tee -a $case_dir/Triage/Timeline/MFT/MFT-Deleted-$comp_name.csv 
+    mft_dump \$MFT -o csv -f $case_dir/Triage/Timeline/MFT/MFT-$comp_name.csv
 }
 
 #Extract $USNJRNL:$J to TLN
