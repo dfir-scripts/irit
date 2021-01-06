@@ -1378,7 +1378,12 @@ function analyze_mft(){
     cd $mount_dir
     makegreen "Analyzing \$MFT Standby..."
     [ -f "\$MFT" ] && \
-    mft_dump \$MFT -o csv -f $case_dir/Triage/Timeline/MFT/MFT-$comp_name.csv
+    python2 /usr/local/bin/analyzeMFT.py -p -f \$MFT --bodyfull --bodyfile=$case_dir/Triage/Timeline/MFT/MFT-$comp_name.body
+    [ -f $case_dir/Triage/Timeline/MFT/MFT-$comp_name.body ] && bodyfile.pl -f $case_dir/Triage/Timeline/MFT/MFT-$comp_name.body -s $comp_name | \
+    sort -rn |tee $case_dir/Triage/Timeline/MFT/MFT-$comp_name.TLN.txt && \
+    cat $case_dir/Triage/Timeline/MFT/MFT-$comp_name.TLN.txt | awk -F'|' '{$1=strftime("%Y-%m-%d %H:%M:%S",$1)}{print $1","$2","$3","$4","$5}'| \
+    tee -a $case_dir/Triage/Timeline/MFT/MFT-$comp_name.csv 
+    mft_dump \$MFT -o csv -f $case_dir/Triage/Timeline/MFT/MFT_Dump-$comp_name.csv
 }
 
 #Extract $USNJRNL:$J to TLN
