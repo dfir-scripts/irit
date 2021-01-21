@@ -24,7 +24,7 @@ pip3 -V || pause
 
 #pip package install and update
 # PIP version 3 = pip3
-sift_pip_pkgs="usnparser oletools libscca-python liblnk-python python-registry pefile libfwsi-python"
+sift_pip_pkgs="usnparser oletools libscca-python liblnk-python python-registry pefile libfwsi-python python-evtx"
 for pip_pkg in $sift_pip_pkgs;
 do
   pip3 install $pip_pkg || pause
