@@ -1233,7 +1233,7 @@ function ADS_extract(){
     cd $mount_dir
     
     #  scan mounted NTFS disk Alternate Data Streams and Timestamps
-    [ "$(lsblk -f |grep $mount_dir | grep " ntfs ")" ]  && makegreen "Extracting Alternate Data Streams" &&\
+    [ "$(getfattr -n ntfs.streams.list $mount_dir 2>/dev/null)" ]  && makegreen "Extracting Alternate Data Streams" &&\
     getfattr -Rn ntfs.streams.list . 2>/dev/null |\
     grep -ab1 -h ntfs.streams.list=|grep -a : |sed 's/.*ntfs.streams.list\="/:/g'|\
     sed 's/.*# file: //'|sed 's/"$//g'|paste -d "" - -|grep -v :$ | while read ADS_file; 
@@ -1242,7 +1242,7 @@ function ADS_extract(){
       crtime=$(getfattr -h -e hex -n system.ntfs_times_be "$base_file" 2>/dev/null|grep "="|awk -F'=' '{print $2}'|grep -o '0x................')
       epoch_time=$(echo $(($crtime/10000000-11644473600)))
       [ $epoch_time ] || epoch_time="0000000000"
-	  MAC=$(stat --format=%y%x%z "$base_file" 2>/dev/null)
+      MAC=$(stat --format=%y%x%z "$base_file" 2>/dev/null)
       [ "$ADS_file" ] && echo "$epoch_time|ADS|$comp_name||[ADS Created]: $ADS_file [MAC]: $MAC"|grep -va "ntfs.streams.list\="|tee -a $tempfile
       [ "$ADS_file" ] && echo "$epoch_time|ADS|$comp_name||[ADS Created]: $ADS_file [MAC]: $MAC" |grep -va "ntfs.streams.list\="|grep Zone.Identifier| tee -a $case_dir/Triage/Browser_Activity/Zone.Identifier-$comp_name.csv
     done
