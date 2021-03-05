@@ -547,7 +547,7 @@ function set_msource_path(){
       echo "Set Path or Enter to Accept Default:"
       read -e -p "" -i "/mnt/image_mount/" mount_dir
       [ ! -d "${mount_dir}" ] && makered "Path does not exist.." && sleep 1 && exit
-....  mount_dir=$(echo $mount_dir |sed 's_.*_&\/_'|sed 's|//*|/|g')
+      mount_dir=$(echo $mount_dir |sed 's_.*_&\/_'|sed 's|//*|/|g')
       echo "Data Source =" $mount_dir
 }
 
@@ -1181,6 +1181,13 @@ function extract_webcacheV(){
         echo "Found $d"
         /usr/bin/esedbexport -t $case_dir/Triage/Browser_Activity/IEWebcache-$user_name-$comp_name "$d";
       done
+    done
+}
+
+function extract_srudb(){
+    find /$mount_dir/$winsysdir/$ -maxdepth 2 -type f -iname "sru*.dat" 2>/dev/null |while read d;
+    do
+      /usr/bin/esedbexport -t $case_dir/Triage/Account_Usage/SRUM-$user_name-$comp_name "$d";
     done
 }
 
