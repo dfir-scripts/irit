@@ -14,6 +14,7 @@ echo "JAVA_HOME=/usr/lib/jvm/bellsoft-java8-full-amd64" >> /etc/environment
 apt install ./sleuthkit-java_4.10.1-1_amd64.deb -y
 
 cd /usr/local/src/autopsy/autopsy-4.17.0
+chmod 755 /usr/local/src/autopsy/autopsy-4.17.0/unix_setup.sh
 sh /usr/local/src/autopsy/autopsy-4.17.0/unix_setup.sh || \
 echo "
 
@@ -23,7 +24,6 @@ NOTE: You may need to log out and back in again after setting JAVA_HOME before t
 To work around, logout and login back in and run the following commands to complete the installation:
 
 
-cd /usr/local/src/autopsy/autopsy-4.17.0
 sudo sh /usr/local/src/autopsy/autopsy-4.17.0/unix_setup.sh
 sudo chmod 755 /usr/local/src/autopsy/autopsy-4.17.0/bin/autopsy
 sudo cp /usr/local/src/autopsy/bin/autopsy /usr/local/bin/
