@@ -25,9 +25,9 @@ To work around, logout and login back in and run the following commands to compl
 
 
 sudo sh /usr/local/src/autopsy/autopsy-4.17.0/unix_setup.sh
-sudo chmod 755 /usr/local/src/autopsy/autopsy-4.17.0/bin/autopsy
 sudo cp /usr/local/src/autopsy/bin/autopsy /usr/local/bin/
 
 "
-chmod 755 /usr/local/src/autopsy/autopsy-4.17.0/bin/autopsy
+cd /usr/local/src/autopsy/autopsy-4.17.0
+sudo ./unix_setup.sh
 cp /usr/local/src/autopsy/autopsy-4.17.0/bin/autopsy /usr/local/bin/
