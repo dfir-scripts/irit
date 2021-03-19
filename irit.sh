@@ -1157,7 +1157,7 @@ function prefetch_extract(){
     sleep 1
     find "/$mount_dir/$windir/" -maxdepth 2 -type d -iname "Prefetch" |sed 's/$/\//'| while read d;
     do
-      python /usr/local/bin/prefetchruncounts.py "$d" -o $case_dir/Triage/Program_Execution/Prefetch-$comp_name
+      python3 /usr/local/bin/prefetchruncounts.py "$d" -o $case_dir/Triage/Program_Execution/Prefetch-$comp_name
     done
 
     find $case_dir/Triage/Program_Execution |grep run_count |while read d;
@@ -1179,7 +1179,7 @@ function winservices(){
     sleep 1
     counter="0" && find $mount_dir/$winsysdir/$regdir -type f 2>/dev/null | grep -i \/system$| while read d;
     do
-      python /usr/local/bin/winservices.py "$d" |tee -a $case_dir/Triage/Persistence/WindowsServices-$comp_name-$counter.txt && counter=$((counter +1));
+      python3 /usr/local/bin/winservices.py "$d" |tee -a $case_dir/Triage/Persistence/WindowsServices-$comp_name-$counter.txt && counter=$((counter +1));
     done
 
     find $case_dir/Triage/Persistence/ -type f |grep "WindowsServices-" | while read d;
@@ -1283,25 +1283,25 @@ function extract_WinEVTX(){
     sleep 1
     find $mount_dir/ -type f 2>/dev/null | grep -i \/security.evtx$| while read d;
     do
-      python /usr/local/bin/parse_evtx_logins.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/Windows-Logins-$comp_name.txt;
-      python /usr/local/bin/parse_evtx_processes.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/Windows-processes-$comp_name.txt;
-      python /usr/local/bin/parse_evtx_accounts.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/Windows-accounts-$comp_name.txt;
+      python3 /usr/local/bin/parse_evtx_logins.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/Windows-Logins-$comp_name.txt;
+      python3 /usr/local/bin/parse_evtx_processes.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/Windows-processes-$comp_name.txt;
+      python3 /usr/local/bin/parse_evtx_accounts.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/Windows-accounts-$comp_name.txt;
     done
     #Microsoft-Windows-TaskScheduler4Operational.evtx
     find $mount_dir/ -type f 2>/dev/null | grep -i \/Microsoft-Windows-TaskScheduler\%4Operational.evtx$| while read d;
     do
-      python /usr/local/bin/parse_evtx_tasks.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/Task-Scheduler-$comp_name.txt;
+      python3 /usr/local/bin/parse_evtx_tasks.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/Task-Scheduler-$comp_name.txt;
     done
     find $mount_dir/ -type f 2>/dev/null | grep -i \/Microsoft-Windows-TerminalServices-LocalSessionManager\%4Operational.evtx| while read d;
     do
-      python /usr/local/bin/parse_evtx__Local.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/RDP-$comp_name.txt;
+      python3 /usr/local/bin/parse_evtx__Local.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/RDP-$comp_name.txt;
     done
     find $mount_dir/ -type f 2>/dev/null | grep -i \/Microsoft-Windows-TerminalServices-RemoteConnectionManager\%4Admin.evtx$| while read d;
     do
-      python /usr/local/bin/parse_evtx_RDP_Remote.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/RDP-$comp_name.txt;
+      python3 /usr/local/bin/parse_evtx_RDP_Remote.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/RDP-$comp_name.txt;
     #find $mount_dir/ -type f 2>/dev/null | grep -i \/Microsoft-Windows-RemoteDesktopServices-RdpCoreTS\%4Operational.evtx$| while read d;
     #do
-    #  python /usr/local/bin/parse_evtx_RDP_Remote.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/RDP-$comp_name.txt;
+    #  python3 /usr/local/bin/parse_evtx_RDP_Remote.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/RDP-$comp_name.txt;
     done
 }
 
