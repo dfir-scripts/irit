@@ -344,7 +344,6 @@ function add_tools(){
   curl -s https://api.github.com/repos/gchq/CyberChef/releases/latest |\
   grep -E 'browser_download_url'|awk -F'"' '{system("wget -P /tmp "$4) }' && \
   unzip -o /tmp/Cyber*.zip -d /usr/local/src/CyberChef
-  cp /usr/local/src/CyberChef/Cyber*.html /home/*/Desktop/
 }
 	 
 [ $(whoami) != "root" ] && echo "Requires Root!" && exit
