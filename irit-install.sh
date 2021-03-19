@@ -147,7 +147,7 @@ function main_install(){
 
 
   #Install Applications from Apt
-  sift_apt_pkgs="fdupes sleuthkit attr ewf-tools afflib-tools qemu-utils libbde-utils python3-libesedb exfat-utils libvshadow-utils xmount libesedb-utils liblnk-utils libevtx-utils pff-tools sqlite3"
+  sift_apt_pkgs="fdupes sleuthkit attr ewf-tools afflib-tools qemu-utils libbde-utils python3-libesedb exfat-utils libvshadow-utils xmount libesedb-utils liblnk-utils libevtx-utils pff-tools python3-lxml sqlite3"
 
   for apt_pkg in $sift_apt_pkgs;
   do
