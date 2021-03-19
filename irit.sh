@@ -1302,7 +1302,7 @@ function extract_WinEVTX(){
     #find $mount_dir/ -type f 2>/dev/null | grep -i \/Microsoft-Windows-RemoteDesktopServices-RdpCoreTS\%4Operational.evtx$| while read d;
     #do
     #  python /usr/local/bin/parse_evtx_RDP_Remote.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/RDP-$comp_name.txt;
-    #done
+    done
 }
 
 #Extract MFT to body file and then to TLN and csv files
