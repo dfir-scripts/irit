@@ -139,7 +139,7 @@ function main_install(){
   pip3 -V || pause
   
   #pip installs
-  sift_pip_pkgs="usnparser bs4 libscca-python liblnk-python python-registry pefile libfwsi-python regex iocextract oletools"
+  sift_pip_pkgs="usnparser bs4 python-evtx libscca-python liblnk-python python-registry pefile libfwsi-python regex iocextract oletools"
   for pip_pkg in $sift_pip_pkgs;
   do
     pip3 install $pip_pkg || pause
