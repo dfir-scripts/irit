@@ -1236,7 +1236,7 @@ extract_objects_data(){
     find $winsysdir -maxdepth 3 -type f 2>/dev/null  | grep -i '\/objects.data$'|sed 's|^\./||'|while read d;
     do
       python2 /usr/local/bin/CCM_RUA_Finder.py -i "$d" -o $case_dir/Triage/Program_Execution/CCM-RecentApps-$comp_name.csv
-      python2 /usr/local/bin/PyWMIPersistenceFinder.py -i "$d" -o $case_dir/Triage/Persistence/WMI-Persistence-$comp_name.csv
+      python2 /usr/local/bin/PyWMIPersistenceFinder.py "$d" |tee -a $case_dir/Triage/Persistence/WMI-Persistence-$comp_name.csv
     done
 }
 
