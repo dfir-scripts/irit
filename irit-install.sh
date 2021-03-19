@@ -352,6 +352,5 @@ arch |grep x86_64 || display_usage
 [ "$1" == "-h" ] && display_usage
 which apt && main_install || display_usage
 [ "$1" == "-t" ] && add_tools
-[ "$1" == "-i" ] && add_tools && irit_install
 updatedb
 history -c
