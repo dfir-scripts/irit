@@ -1294,7 +1294,7 @@ function extract_WinEVTX(){
     done
     find $mount_dir/ -type f 2>/dev/null | grep -i \/Microsoft-Windows-TerminalServices-LocalSessionManager\%4Operational.evtx| while read d;
     do
-      python3 /usr/local/bin/parse_evtx_Local.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/RDP-$comp_name.txt;
+      python3 /usr/local/bin/parse_evtx_RDP_Local.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/RDP-$comp_name.txt;
     done
     find $mount_dir/ -type f 2>/dev/null | grep -i \/Microsoft-Windows-TerminalServices-RemoteConnectionManager\%4Admin.evtx$| while read d;
     do
