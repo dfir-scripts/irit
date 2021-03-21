@@ -160,7 +160,7 @@ function main_install(){
 
   #Git analyzeMFT
   [ "$(ls -A /usr/local/src/analyzeMFT/ 2>/dev/null)" ] && \
-  git -C /usr/local/src/analyzeMFT pull 2>/dev/null|| \
+  git -C /usr/local/src/analyzeMFT pull --no-rebase 2>/dev/null|| \
   git clone https://github.com/dkovar/analyzeMFT.git /usr/local/src/analyzeMFT
   [ "$(ls -A /usr/local/src/analyzeMFT/)" ] || pause
   cd /usr/local/src/analyzeMFT/ 
@@ -168,13 +168,13 @@ function main_install(){
 
   #Git IRIT Files
   [ "$(ls -A /usr/local/src/irit/ 2>/dev/null)" ] && \
-  git -C /usr/local/src/irit pull 2>/dev/null || \
+  git -C /usr/local/src/irit pull --no-rebase 2>/dev/null || \
   git clone https://github.com/dfir-scripts/irit.git /usr/local/src/irit
   [ "$(ls -A /usr/local/src/irit/)" ] && chmod 755 /usr/local/src/irit/* || pause
 
   #Git and configure Harlan Carvey tools
   [ "$(ls -A /usr/local/src/keydet89/tools/ 2>/dev/null)" ] && \
-  git -C /usr/local/src/keydet89/tools/ pull 2>/dev/null || \
+  git -C /usr/local/src/keydet89/tools/ pull --no-rebase 2>/dev/null || \
   git clone https://github.com/keydet89/Tools.git /usr/local/src/keydet89/tools/ 
   chmod 755 /usr/local/src/keydet89/tools/source/* || pause
   #set Windows Perl scripts in Keydet89/Tools/source 
@@ -187,25 +187,25 @@ function main_install(){
 
   #Git and configure WMI Forensics
   [ "$(ls -A /usr/local/src/WMI_Forensics/ 2>/dev/null)" ] && \
-  git -C /usr/local/src/WMI_Forensics pull 2>/dev/null || \
+  git -C /usr/local/src/WMI_Forensics pull --no-rebase 2>/dev/null || \
   git clone https://github.com/davidpany/WMI_Forensics.git /usr/local/src/WMI_Forensics
   cp /usr/local/src/WMI_Forensics/CCM_RUA_Finder.py /usr/local/bin/CCM_RUA_Finder.py || pause
   cp /usr/local/src/WMI_Forensics/PyWMIPersistenceFinder.py /usr/local/bin/PyWMIPersistenceFinder.py || pause
 
   #Git Volatility3
   [ "$(ls -A /usr/local/src/volatility/ 2>/dev/null)" ] && \
-  git -C /usr/local/src/volatility pull 2>/dev/null|| \
+  git -C /usr/local/src/volatility pull --no-rebase 2>/dev/null|| \
   git clone https://github.com/volatilityfoundation/volatility3.git /usr/local/src/volatility
   chmod 755  /usr/local/src/volatility/*.py
 
   #Git kacos2000 Scripts
   [ "$(ls -A /usr/local/src/kacos2000/Queries 2>/dev/null)" ] && \
-  git -C /usr/local/src/kacos2000/Queries pull 2>/dev/null|| \
+  git -C /usr/local/src/kacos2000/Queries pull --no-rebase 2>/dev/null|| \
   mkdir -p /usr/local/src/kacos2000 \
   git clone https://github.com/kacos2000/Queries.git /usr/local/src/kacos2000/Queries
 
   [ "$(ls -A /usr/local/src/kacos2000/WindowsTimeline 2>/dev/null)" ] && \
-  git -C /usr/local/src/kacos2000/WindowsTimeline pull 2>/dev/null|| \
+  git -C /usr/local/src/kacos2000/WindowsTimeline pull --no-rebase 2>/dev/null|| \
   mkdir -p /usr/local/src/kacos2000
   git clone https://github.com/kacos2000/WindowsTimeline.git /usr/local/src/kacos2000/WindowsTimeline
 
@@ -278,34 +278,34 @@ function add_tools(){
   # Install from git
   # git bulk extractor
   [ "$(ls -A /usr/local/src/bulk_extractor/)" ] && \
-  git -C /usr/local/src/bulk_extractor pull 2>/dev/null|| \ 
+  git -C /usr/local/src/bulk_extractor pull --no-rebase 2>/dev/null|| \ 
   git clone https://github.com/simsong/bulk_extractor.git /usr/local/src/bulk_extractor 
   # Requires a manual install bulk extractor
 
   #Git and configure INDXParse
   [ "$(ls -A /usr/local/src/INDXParse/)" ] && \
-  git -C /usr/local/src/INDXParse pull 2>/dev/null||\
+  git -C /usr/local/src/INDXParse pull --no-rebase 2>/dev/null||\
   git clone https://github.com/williballenthin/INDXParse.git /usr/local/src/INDXParse
 
   #Git and configure Didier Stevens Tools
   [ "$(ls -A /usr/local/src/DidierStevensSuite/)" ] && \
-  git -C /usr/local/src/DidierStevensSuite pull 2>/dev/null|| \
+  git -C /usr/local/src/DidierStevensSuite pull --no-rebase 2>/dev/null|| \
   git clone https://github.com/DidierStevens/DidierStevensSuite.git /usr/local/src/DidierStevensSuite
 
   #Git Yara Rules
   [ "$(ls -A /usr/local/src/yara/Neo23x0/signature-base/)" ] && \
-  git -C /usr/local/src/yara/Neo23x0/signature-base pull|| \
+  git -C /usr/local/src/yara/Neo23x0/signature-base pull --no-rebase 2>/dev/null || \
   git clone https://github.com/Neo23x0/signature-base.git /usr/local/src/yara/Neo23x0/signature-base
   [ "$(ls -A /usr/local/src/yara/reversinglabs/)" ] && \
-  git -C /usr/local/src/yara/reversinglabs pull 2>/dev/null|| \
+  git -C /usr/local/src/yara/reversinglabs pull --no-rebase 2>/dev/null|| \
   git clone https://github.com/reversinglabs/reversinglabs-yara-rules.git /usr/local/src/yara/reversinglabs
   [ "$(ls -A /usr/local/src/yara/yararules.com/)" ] && \
-  git -C /usr/local/src/yara/yararules.com pull 2>/dev/null|| \
+  git -C /usr/local/src/yara/yararules.com pull --no-rebase 2>/dev/null|| \
   git clone https://github.com/Yara-Rules/rules.git /usr/local/src/yara/yararules.com
 
   #Git LogFileParser
   [ "$(ls -A /usr/local/src/LogFileParser/)" ] && \
-  git -C /usr/local/src/LogFileParser pull|| \
+  git -C /usr/local/src/LogFileParser pull --no-rebase 2>/dev/null || \
   git clone https://github.com/jschicht/LogFileParser.git /usr/local/src/LogFileParser
 
   [ "$(ls -A /usr/local/src/cugu/afro )" ] && \
