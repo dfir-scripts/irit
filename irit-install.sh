@@ -230,6 +230,8 @@ function main_install(){
   wget -O /usr/local/src/irit/prefetchruncounts.py https://raw.githubusercontent.com/dfir-scripts/prefetchruncounts/master/prefetchruncounts.py || pause 
   wget -O /usr/local/src/irit/winservices.py https://raw.githubusercontent.com/dfir-scripts/Python-Registry/master/winservices.py || pause 
   wget -O /usr/local/src/irit/RegRipper30-apt-git-Install.sh https://raw.githubusercontent.com/dfir-scripts/installers/main/RegRipper30-apt-git-Install.sh  || pause
+  wget -O /usr/local/src/irit/install-autospy-gui.sh https://raw.githubusercontent.com/dfir-scripts/installers/main/install-autospy-gui.sh  || pause
+  wget -O /usr/local/src/irit/get-yara-rules.sh https://raw.githubusercontent.com/dfir-scripts/installers/main/get-yara-rules.sh  || pause 
   wget -O /usr/local/src/irit/parse_evtx_tasks.py  https://raw.githubusercontent.com/dfir-scripts/WinEventLogs/master/parse_evtx_tasks.py || pause
   wget -O /usr/local/src/irit/parse_evtx_BITS.py  https://raw.githubusercontent.com/dfir-scripts/WinEventLogs/master/parse_evtx_BITS.py || pause
   wget -O /usr/local/src/irit/parse_evtx_logins.py  https://raw.githubusercontent.com/dfir-scripts/WinEventLogs/master/parse_evtx_logins.py || pause
