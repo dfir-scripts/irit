@@ -337,7 +337,7 @@ function add_tools(){
   curl -s https://api.github.com/repos/orlikoski/CyLR/releases/latest | \
   grep browser_download_url | grep CyLR_ | cut -d '"' -f 4| while read d; 
   do 
-    wget -P /usr/local/src/CyLR/ $d;
+    wget -NP /usr/local/src/CyLR/ $d;
   done
   [ "$(ls -A /usr/local/src/CyLR/)" ] || pause
 
