@@ -332,6 +332,12 @@ function add_tools(){
   #Get DeXRAY
   wget -O /usr/local/src/irit/DeXRAY.pl http://hexacorn.com/d/DeXRAY.pl
   chmod 755 /usr/local/src/irit/DeXRAY.pl && mv /usr/local/src/irit/DeXRAY.pl /usr/local/bin/  || pause
+  curl -L http://cpanmin.us | perl - --sudo App::cpanminus
+  cpanm Crypt::RC4
+  cpanm Digest::CRC
+  cpanm Crypt::Blowfish
+  cpanm Archive::Zip
+  cpanm OLE::Storage_Lite
 
   #Git CyLR
   curl -s https://api.github.com/repos/orlikoski/CyLR/releases/latest | \
