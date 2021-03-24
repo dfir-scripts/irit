@@ -327,11 +327,11 @@ function add_tools(){
   chmod 755 /tmp/densityscout/lin64/densityscout && cp /tmp/densityscout/lin64/densityscout /usr/local/bin/
   # Get ftkimager
   wget  https://ad-zip.s3.amazonaws.com/ftkimager.3.1.1_ubuntu64.tar.gz -O - | tar -xzvf - -C /usr/local/src/irit/
-  chmod -755 /usr/local/src/irit/ftkimager && mv /usr/local/src/irit/ftkimager /usr/local/bin/  || pause
+  chmod 755 /usr/local/src/irit/ftkimager && mv /usr/local/src/irit/ftkimager /usr/local/bin/  || pause
 
   #Get DeXRAY
   wget -O /usr/local/src/irit/DeXRAY.pl http://hexacorn.com/d/DeXRAY.pl
-  chmod -755 /usr/local/src/irit/DeXRAY.pl && mv /usr/local/src/irit/DeXRAY.pl /usr/local/bin/  || pause
+  chmod 755 /usr/local/src/irit/DeXRAY.pl && mv /usr/local/src/irit/DeXRAY.pl /usr/local/bin/  || pause
 
   #Git CyLR
   curl -s https://api.github.com/repos/orlikoski/CyLR/releases/latest | \
