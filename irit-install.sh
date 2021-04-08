@@ -192,6 +192,16 @@ function main_install(){
   cp /usr/local/src/WMI_Forensics/CCM_RUA_Finder.py /usr/local/bin/CCM_RUA_Finder.py || pause
   cp /usr/local/src/WMI_Forensics/PyWMIPersistenceFinder.py /usr/local/bin/PyWMIPersistenceFinder.py || pause
 
+  #Git apfs-fuse
+  apt install fuse libfuse3-dev bzip2 libbz2-dev cmake gcc libattr1-dev zlib1g-dev
+  [ "$(ls -A /usr/local/src/apfs-fuse/ 2>/dev/null)" ] && \
+  git -C /usr/local/src/apfs-fuse pull --no-rebase 2>/dev/null|| \
+  git clone https://github.com/sgan81/apfs-fuse.git /usr/local/src/apfs-fuse && \
+  cd /usr/local/src/apfs-fuse && git submodule init && git submodule update && \
+  mkdir -p /usr/local/src/apfs-fuse/build && cd /usr/local/src/apfs-fuse/build && \
+  cmake .. && make
+  cd /usr/local/src/
+
   #Git Volatility3
   [ "$(ls -A /usr/local/src/volatility/ 2>/dev/null)" ] && \
   git -C /usr/local/src/volatility pull --no-rebase 2>/dev/null|| \
@@ -261,7 +271,7 @@ function main_install(){
 function add_tools(){
   # Extended Tools Install
   #Install tools from apt
-  extended_aptpkgs="jq gparted feh yara gddrescue rar unrar p7zip-full p7zip-rar python-jinja2 stegosuite clamav clamtk gridsite-clients foremost testdisk graphviz ifuse"
+  extended_aptpkgs="jq gparted feh yara eog gddrescue rar unrar p7zip-full p7zip-rar python-jinja2 stegosuite clamav clamtk gridsite-clients foremost testdisk chntpw graphviz ifuse"
   for apt_pkg in $extended_aptpkgs;
   do
     echo "Installing $apt_pkg"
@@ -271,6 +281,10 @@ function add_tools(){
   
   # Install Powershell
   pwsh -v || install_powershell
+  
+  # Install R-Linux
+  wget -O /tmp/RLinux5_x64.deb  https://www.r-studio.com/downloads/RLinux5_x64.deb && 
+  dpkg -i /tmp/RLinux5_x64.deb || pause
   
   #TO DO
   #Install Hindsight and Unfurl
@@ -325,6 +339,7 @@ function add_tools(){
   wget -O /tmp/densityscout_build_45_linux.zip https://cert.at/media/files/downloads/software/densityscout/files/densityscout_build_45_linux.zip || pause
   unzip -o /tmp/densityscout_build_45_linux.zip -d /tmp/densityscout/
   chmod 755 /tmp/densityscout/lin64/densityscout && cp /tmp/densityscout/lin64/densityscout /usr/local/bin/
+  
   # Get ftkimager
   wget  https://ad-zip.s3.amazonaws.com/ftkimager.3.1.1_ubuntu64.tar.gz -O - | tar -xzvf - -C /usr/local/src/irit/
   chmod 755 /usr/local/src/irit/ftkimager && mv /usr/local/src/irit/ftkimager /usr/local/bin/  || pause
