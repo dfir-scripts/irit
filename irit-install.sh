@@ -59,6 +59,7 @@ Directories created
 #  /mnt/vss
 #  /mnt/shadow
 #  /mnt/bde
+#  /mnt/smb
 #  /cases
 
 Parsing Tools
@@ -131,7 +132,7 @@ function main_install(){
   
   ############### Irit Tools Download, Install and Confiuration ##########################
   #Make Disk Mount and Cases Directories
-  mkdir -p /mnt/{raw,image_mount,vss,shadow,bde}
+  mkdir -p /mnt/{raw,image_mount,vss,shadow,bde,smb}
   mkdir -p /cases
 
   #Install pip and pip3
@@ -139,15 +140,14 @@ function main_install(){
   pip3 -V || pause
   
   #pip installs
-  sift_pip_pkgs="usnparser bs4 python-evtx libscca-python liblnk-python python-registry pefile libfwsi-python regex iocextract oletools"
+  sift_pip_pkgs="usnparser bs4 python-evtx libscca-python liblnk-python python-registry pefile libfwsi-python regex iocextract oletools launchpadlib hindsight unfurl"
   for pip_pkg in $sift_pip_pkgs;
   do
     pip3 install $pip_pkg || pause
   done
 
-
   #Install Applications from Apt
-  sift_apt_pkgs="fdupes sleuthkit attr dcfldd ewf-tools afflib-tools qemu-utils libbde-utils python3-libesedb exfat-utils libvshadow-utils xmount libesedb-utils liblnk-utils libevtx-utils pff-tools python3-lxml sqlite3"
+  sift_apt_pkgs="fdupes sleuthkit attr dcfldd ewf-tools afflib-tools qemu-utils libbde-utils python3-libesedb exfat-utils libvshadow-utils xmount libesedb-utils exif dc3dd python-is-python3 liblnk-utils libevtx-utils pff-tools python3-lxml sqlite3"
 
   for apt_pkg in $sift_apt_pkgs;
   do
@@ -193,7 +193,7 @@ function main_install(){
   cp /usr/local/src/WMI_Forensics/PyWMIPersistenceFinder.py /usr/local/bin/PyWMIPersistenceFinder.py || pause
 
   #Git apfs-fuse
-  apt install fuse libfuse3-dev bzip2 libbz2-dev cmake gcc libattr1-dev zlib1g-dev
+  apt install fuse libfuse3-dev bzip2 libbz2-dev cmake gcc libattr1-dev zlib1g-dev -y
   [ "$(ls -A /usr/local/src/apfs-fuse/ 2>/dev/null)" ] && \
   git -C /usr/local/src/apfs-fuse pull --no-rebase 2>/dev/null|| \
   git clone https://github.com/sgan81/apfs-fuse.git /usr/local/src/apfs-fuse && \
@@ -271,7 +271,7 @@ function main_install(){
 function add_tools(){
   # Extended Tools Install
   #Install tools from apt
-  extended_aptpkgs="jq gparted feh yara eog gddrescue rar unrar p7zip-full p7zip-rar python-jinja2 stegosuite clamav clamtk gridsite-clients foremost testdisk chntpw graphviz ifuse"
+  extended_aptpkgs="jq gparted feh yara eog gddrescue rar unrar p7zip-full p7zip-rar python-jinja2 stegosuite glogg bless binwalk samba remmina hashcat clamav clamtk gridsite-clients guymager foremost testdisk chntpw graphviz ifuse wine winetricks"
   for apt_pkg in $extended_aptpkgs;
   do
     echo "Installing $apt_pkg"
@@ -282,15 +282,16 @@ function add_tools(){
   # Install Powershell
   pwsh -v || install_powershell
   
+  #Install additional tools from snap
+  snap install brave || pause
+  snap install okteta || pause
+  snap install sqlitebrowser || pause
+  
+  
   # Install R-Linux
   wget -O /tmp/RLinux5_x64.deb  https://www.r-studio.com/downloads/RLinux5_x64.deb && 
   dpkg -i /tmp/RLinux5_x64.deb || pause
   
-  #TO DO
-  #Install Hindsight and Unfurl
-  #pip3 install pytz puremagic pyhindsight || pause 
-  #pip3 install dfir-unfurl -U || pause 
-
   # Install from git
   # git bulk extractor
   [ "$(ls -A /usr/local/src/bulk_extractor/)" ] && \
