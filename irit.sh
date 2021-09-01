@@ -1,15 +1,21 @@
-#!/bin/bash
+#!/usr/bin/env bash
 export TZ='Etc/UTC'
 function read_me(){
 echo "
 ##############################################################################################
-IRIT
+Siftgrab
 A collection of Open source and custom forensic scripts wrapped into a shell menu to mount,
 extract and timeline Windows forensic metadata on mounted images and image excerpts from tools
 like CYLR and Kape. Also can extracts image forensic data for later analysis.
 Outputs Regripper results, CSV and TLNs and more.
-Tested on Ubuntu 20.04, Kali but should work on any system using the Apt package manager.
+Tested on Ubuntu 20.04, Kali and Windows WSL 2 system running ubuntu but should work on any system using the Apt package manager.
 ##############################################################################################
+
+To install siftgrab with all the dependancies and added tools run the forensic tools install script.
+https://github.com/dfir-scripts/installers/blob/main/install-forensic-tools.sh
+
+It will install a long list of tools so better to test on new VM or on a newly imaged workstation.
+
 
 "
 }
@@ -32,26 +38,25 @@ function yes-no(){
       read -p "(Y/N)?"
       [ "$(echo $REPLY | tr [:upper:] [:lower:])" == "y" ] &&  yes_no="yes";
 }
-##  Main IRIT Display Menu Function
+##  Main Siftgrab Display Menu Function
 echo ""
 function show_menu(){
     GRAY=`echo "\033[0;37m"`
     GREEN=`echo "\033[0;32m"`
     NORMAL=`echo "\033[m"`
     RED=`echo "\033[31m"`
-    echo -e "${GREEN} IRIT${NORMAL}"
+    echo -e "${GREEN} Siftgrab${NORMAL}"
     echo -e "*****************************************************"
     echo -e "${GRAY}Mount and Extract Information From Windows Disk Images${NORMAL}"
     echo -e "*****************************************************"
     echo -e "**  1) ${GREEN} Mount a Disk or Disk Image (E01, Raw, AFF, QCOW VMDK, VHDX)${NORMAL}"
     echo -e "**  2)${GREEN}  Process Windows Artifacts from Mounted Image or Offline Files${NORMAL}"
-    echo -e "**  3)${GREEN}  Extract Windows Event Logs${NORMAL}"
-    echo -e "**  4) ${GREEN} Acquire Windows Forensic Artifacts from Mounted Image(s)${NORMAL}"
-    echo -e "**  5) ${GREEN} Find and Acquire Volatile Data Files${NORMAL}"
+    echo -e "**  3) ${GREEN} Acquire Windows Forensic Artifacts from Mounted Image(s)${NORMAL}"
+    echo -e "**  4) ${GREEN} Find and Acquire Volatile Data Files${NORMAL}"
     echo -e "**     ${GREEN} (hiberfil.sys, pagefile, swapfile.sys,)${NORMAL}"
-    echo -e "**  6) ${GREEN} Extract Outlook OST/PST Mail Files ${NORMAL}"
-    echo -e "**  7) ${GREEN} Browse Files (lf)${NORMAL}"
-    echo -e "**  8) ${GREEN} Readme${NORMAL}"
+    echo -e "**  5) ${GREEN} Extract Outlook OST/PST Mail Files ${NORMAL}"
+    echo -e "**  6) ${GREEN} Browse Files (lf)${NORMAL}"
+    echo -e "**  7) ${GREEN} Readme${NORMAL}"
     echo ""
     echo -e "Select a menu option number or ${RED}enter to exit. ${NORMAL}"
     read opt
@@ -76,7 +81,6 @@ while [ opt != '' ]
            makegreen "Process Artifacts for Triage"
            set_msource_path
            set_windir
-           get_computer_name
            set_dsource_path
            check_dsource_path
            create_triage_dir
@@ -92,12 +96,13 @@ while [ opt != '' ]
            regrip_syscache.hve_tln
            prefetch_extract
            extract_objects_data
+           evtxdump
+           extract_WinEVTX
            del_no_result
            lnkinfo
            recbin2tln
            chrome2tln
            firefox2tln
-           skype2tln
            extract_webcacheV
            winservices
            consolidate_timeline
@@ -105,6 +110,8 @@ while [ opt != '' ]
            ls /$mount_dir/Users/*/AppData/Local/Microsoft/Windows/WebCache 2>/dev/null || parse_index.dat
            cp_setupapi
            extract_Jobs
+           bits_parser
+           parse_current.mdb
            ADS_extract
            analyze_mft
            [ "$usn" ] && parse_usn
@@ -119,28 +126,8 @@ while [ opt != '' ]
            read -n1 -r -p "Press any key to continue..." key
            show_menu;
             ;;
-        #Menu Selection 3: Extract Windows Event Log Files
+        #Menu Selection 3: Acquire Data from Mounted Disks or Image Excerpts
         3) clear;
-           makegreen "Process Event Log Artifacts for Triage"
-           set_msource_path
-           set_windir
-           get_computer_name
-           set_dsource_path
-           create_triage_dir
-           extract_WinEVTX
-           # Clean-up
-           find $case_dir -empty -delete
-           makegreen "Removing Duplicates..."
-           echo "Please Wait..."
-           fdupes -rdN $case_dir
-           makegreen "The Processed Artifacts are Located in $case_dir/Triage"
-           du -sh $case_dir/Triage
-           makegreen Process Complete!
-           read -n1 -r -p "Press any key to continue..." key
-           show_menu;
-            ;;
-        #Menu Selection 4: Acquire Data from Mounted Disks or Image Excerpts
-        4) clear;
            # Set Preferences
            makegreen "Get a copy of Windows Artifacts"
            set_msource_path
@@ -165,7 +152,6 @@ while [ opt != '' ]
            get_webcachev
            get_chrome
            get_firefox
-           get_skype
            get_WMI_info
            get_srumdb
            get_ActivitiesCache
@@ -180,7 +166,7 @@ while [ opt != '' ]
            show_menu;
             ;;
         #Menu Selection 5:  Collect Volatile files from mounted image
-        5) clear;
+        4) clear;
            set_msource_path
            set_dsource_path
            set_windir
@@ -192,7 +178,7 @@ while [ opt != '' ]
            show_menu;
             ;;
         #Menu Selection 6: Collect Outlook Email OST/PST files
-        6) clear;
+        5) clear;
            makegreen "Extract Windows PST/OST file"
            set_msource_path
            set_windir
@@ -208,14 +194,14 @@ while [ opt != '' ]
            show_menu;
             ;;
         #Menu Selection 7:Lf File Browser
-        7) clear;
+        6) clear;
            cd /cases
            gnome-terminal -- bash -c "lf; exec bash"
            clear;
            show_menu;
             ;;
-        #Menu Selection 8:IRIT Readme
-        8) clear;
+        #Menu Selection 8:Siftgrab Readme
+        7) clear;
            read_me
            read -n1 -r -p "Press any key to continue..." key
            clear;
@@ -300,9 +286,11 @@ function set_windir(){
       winsysdir=$(find $mount_dir -maxdepth 2 -type d |egrep -m1 -io windows\/system32$)
       user_dir=$(find $mount_dir -maxdepth 1 -type d |grep -io users$)
       regdir=$(find $mount_dir/$winsysdir -maxdepth 2 -type d |egrep -m1 -io \/config$)
+      evtxdir=$(find $mount_dir/$winsysdir -maxdepth 3 -type d |egrep -m1 -io winevt\/logs$)
       [ "$windir" == "" ] || [ "$winsysdir" == "" ] && makered "No Windows Directory Path Found on Source..." && sleep 2 && show_menu
       echo "Windows System32 Directory => $mount_dir$winsysdir"
       echo  "Registry Directory" $mount_dir$winsysdir$regdir
+      echo  "Windows Event Log Directory" $mount_dir$winsysdir$evtxdir
 }
 
 #Get Computer Name using Regripper's "comp_name" plugin
@@ -465,16 +453,6 @@ function get_webcachev(){
     echo "#### MICROSOFT WEB BROWSER DB (WEBCACHEV01.DAT) ####" >> $case_dir/Acquisition.log.txt
     cd $mount_dir
     find $user_dir/*/AppData/Local/Microsoft/Windows/WebCache -maxdepth 2 -type f -iname "Webcach*.dat" 2>/dev/null -print0| \
-    tar -rvf  $case_dir/$comp_name-acquisition.tar --null -T -  |tee -a $case_dir/Acquisition.log.txt
-    echo ""
-}
-
-#Copy Skype main.db files
-function get_skype(){
-    makegreen "Saving Skype"
-    echo "#### SKYPE HISTORY ####" >> $case_dir/Acquisition.log.txt
-    cd $mount_dir
-    find $user_dir/*/AppData/Roaming/Skype/*/ -maxdepth 2 -type f -iname "main.db" 2>/dev/null -print0| \
     tar -rvf  $case_dir/$comp_name-acquisition.tar --null -T -  |tee -a $case_dir/Acquisition.log.txt
     echo ""
 }
@@ -912,52 +890,26 @@ function extract_webcacheV(){
 function extract_srudb(){
     find /$mount_dir/$winsysdir/$ -maxdepth 2 -type f -iname "sru*.dat" 2>/dev/null |while read d;
     do
-      /usr/bin/esedbexport -t $case_dir/Triage/Account_Usage/SRUM-$user_name-$comp_name "$d";
+      /usr/bin/esedbexport -t $case_dir/Triage/Account_Usage/SRUDB-$user_name-$comp_name "$d";
     done
 }
 
-#Timeline Skype metadata
-function skype2tln(){
-    makegreen "Extracting Any Skype History Logs (sqlite3)"
-    cd $mount_dir/$user_dir/
-    find "$mount_dir/$user_dir/" -maxdepth 2 ! -type l|grep -i ntuser.dat$ |while read ntuser_path;
+function parse_current.mdb(){
+    find $winsysdir -maxdepth 2 -type d -iname "LogFiles/Sum"
+    find /$mount_dir/$winsysdir/LogFiles/SUM/ -type f -iname "current*.db" 2>/dev/null |while read d;
     do
-      user_name=$( echo "$ntuser_path"|sed 's/\/$//'|awk -F"/" '{print $(NF-1)}')
-      main_db=$(find $mount_dir/$user_dir/"$user_name"/ |grep -i appdata.roaming.skype|grep -i main.db)
-      find "$mount_dir/$user_dir/$user_name"|grep -i appdata.roaming.skype|grep -i main.db$ |while read maindb;
-      do
-        #contacts
-        sqlite3 file:"$maindb" 'select profile_timestamp,skypename, fullname,displayname from Contacts'|
-        awk -F'|' '{print $1"|Skype|||NEW CONTACT: "$2", "$3", "$4}'|
-        sed 's|^\||0\||'| sed "s/|||/|${comp_name}|${user_name}|/" |tee -a $tempfile
-
-        messages
-        sqlite3 file:"$maindb" 'select timestamp,body_xml,author,dialog_partner from Messages'| \
-        awk -F'|' '{print $1"|Skype|||MESSAGE: "$2", FROM:"$3","$4}'|
-        sed 's|^\||0\||' | sed "s/|||/|${comp_name}|${user_name}|/"| tee -a $tempfile
-
-        #Voicemail
-        sqlite3 file:"$maindb" 'select timestamp,partner_dispname,path from Voicemails'| \
-        awk -F'|' '{print $1"|Skype|||VOICEMAIL FROM: "$2" FILE: "$3}'|
-        sed 's|^\||0\||' | sed "s/|||/|${comp_name}|${user_name}|/" |tee -a $tempfile
-
-        #Conversations
-        sqlite3 file:"$maindb" 'select creation_timestamp,displayname from Conversations' 2>/dev/null| \
-        awk -F'|' '{print $1"|Skype|||CONVERSATION STARTED: "$2}'|
-        sed 's|^\||0\||'| sed "s/|||/|${comp_name}|${user_name}|/" |tee -a $tempfile
-
-        sqlite3 file:"$maindb" 'select last_activity_timestamp, displayname from Conversations' 2>/dev/null| \
-        awk -F'|' '{print $1"|Skype|||CONVERSTATION END: " $2}'|
-        sed 's|^\||0\||'| sed "s/|||/|${comp_name}|${user_name}|/" |tee -a $tempfile
-
-        #File Transfer
-        sqlite3 file:"$maindb" 'select starttime, filepath,bytestransferred,partner_dispname from Transfers' 2>/dev/null|\
-        awk -F'|' '{print $1"|Skype|||FILE TRANSFER:" $2}'|
-        sed 's|^\||0\||' | sed "s/|||/|${comp_name}|${user_name}|/" | tee -a $tempfile
-      done
+      kstrike $d |tee -a $case_dir/Triage/File_Access/current.mdb-$comp_name.txt;
     done
-
 }
+
+function bits_parser(){
+    find /$mount_dir/ProgramData/Microsoft/Network/Downloader/$ -maxdepth 2 -type f -iname "qmgr*.db" 2>/dev/null |while read d;
+    do
+      bits_parser $d |tee -a $case_dir/Triage/Persistence/BITS-qmgr.db-$comp_name.txt;
+    done
+}
+
+
 
 #Timeline Alternate Data Streams
 function ADS_extract(){
@@ -1029,7 +981,7 @@ function consolidate_timeline(){
     echo ""
     cat $tempfile | sort -rn |uniq | tee -a | tee -a $case_dir/Triage/Timeline/Triage-Timeline-$comp_name.TLN;
     cat $tempfile |awk -F'|' '{$1=strftime("%Y-%m-%d %H:%M:%S",$1)}{print $1","$2","$3","$4","$5}'|sort -rn | uniq| grep -va ",,,," |tee -a $case_dir/Triage/Timeline/Triage-Timeline-$comp_name.csv.txt
-    cat $case_dir/Triage/Timeline/Triage-Timeline-$comp_name.csv.txt| grep Skype -a | tee -a $case_dir/Triage/Browser_Activity/Skype-$comp_name.csv
+
     cat $case_dir/Triage/Timeline/Triage-Timeline-$comp_name.csv.txt|grep -ia ",alert," |tee -a $case_dir/Triage/Alert/RegRipperAlerts-$comp_name.csv
     makegreen "Complete!"
 }
@@ -1058,7 +1010,7 @@ function extract_Jobs(){
 }
 
 #Parse OBJECTS.DATA file
-extract_objects_data(){
+function extract_objects_data(){
     cd $mount_dir
     makegreen "Searching for Object.data file (PyWMIPersistenceFinder.py, CCM-RecentApps.py)"
     sleep 1
@@ -1070,7 +1022,7 @@ extract_objects_data(){
 }
 
 #Parse Windows History File
-extract_winactivities(){
+function extract_winactivities(){
     cd $mount_dir
     makegreen "Searching for ActivitiesCache.db"
     cd $mount_dir/$user_dir/
@@ -1087,7 +1039,7 @@ extract_winactivities(){
 }
 
 #Parse IE History File Index.dat
-parse_index.dat(){
+function parse_index.dat(){
     cd $mount_dir
     makegreen "Searching for any index.dat files"
     cd $mount_dir/$user_dir/
@@ -1106,34 +1058,47 @@ parse_index.dat(){
 }
 
 # Extract WindowsEvent Logs
+function evtxdump(){
+    cd $mount_dir
+    makegreen "Searching for windows Event Logs"
+    sleep 1
+    #$time find /mnt/image_mount/Windows/System32 -name '*.evtx' -exec evtx_dump  {} -o jsonl \;
+    find $mount_dir/$winsysdir/$evtxdir -name '*.evtx' -exec evtx_dump {} -o jsonl \;  \
+    | tee -a $case_dir/Triage/WindowsEventLogs/Windows-Eventlogs-$comp_name.json;
+}
+
 function extract_WinEVTX(){
     cd $mount_dir
     makegreen "Searching for windows Event Logs"
     sleep 1
-    find $mount_dir/ -type f 2>/dev/null | grep -i \/security.evtx$| while read d;
-    do
-      python3 /usr/local/bin/parse_evtx_logins.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/Windows-Logins-$comp_name.txt;
-      python3 /usr/local/bin/parse_evtx_processes.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/Windows-processes-$comp_name.txt;
-      python3 /usr/local/bin/parse_evtx_accounts.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/Windows-accounts-$comp_name.txt;
-    done
+#    find $mount_dir/ -type f 2>/dev/null | grep -i \/security.evtx$| while read d;
+#    do
+#      python3 /usr/local/bin/parse_evtx_logins.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/Windows-Logins-$comp_name.txt;
+#      python3 /usr/local/bin/parse_evtx_processes.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/Windows-processes-$comp_name.txt;
+#      python3 /usr/local/bin/parse_evtx_accounts.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/Windows-accounts-$comp_name.txt;
+#    done
+
     #Microsoft-Windows-TaskScheduler4Operational.evtx
-    find $mount_dir/ -type f 2>/dev/null | grep -i \/Microsoft-Windows-TaskScheduler\%4Operational.evtx$| while read d;
+    find $mount_dir/$winsysdir/$evtxdir -type f 2>/dev/null | grep -i \/Microsoft-Windows-TaskScheduler\%4Operational.evtx$| while read d;
     do
-      python3 /usr/local/bin/parse_evtx_tasks.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/Task-Scheduler-$comp_name.txt;
+      python3 /usr/local/bin/parse_evtx_tasks.py "$d" |tee -a $case_dir/Triage/Persistence/Task-Scheduler-evtx-$comp_name.txt;
     done
-    find $mount_dir/ -type f 2>/dev/null | grep -i \/Microsoft-Windows-TerminalServices-LocalSessionManager\%4Operational.evtx| while read d;
+    find $mount_dir/$winsysdir/$evtxdir -type f 2>/dev/null | grep -i \/Microsoft-Windows-TerminalServices-LocalSessionManager\%4Operational.evtx| while read d;
     do
-      python3 /usr/local/bin/parse_evtx_RDP_Local.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/RDP-$comp_name.txt;
+      python3 /usr/local/bin/parse_evtx_RDP_Local.py "$d" |tee -a $case_dir/Triage/Account_Usage/RDP-evtx-$comp_name.txt;
     done
-    find $mount_dir/ -type f 2>/dev/null | grep -i \/Microsoft-Windows-TerminalServices-RemoteConnectionManager\%4Admin.evtx$| while read d;
+    find $mount_dir/$winsysdir/$evtxdir -type f 2>/dev/null | grep -i \/Microsoft-Windows-TerminalServices-RemoteConnectionManager\%4Operational.evtx$| while read d;
     do
-      python3 /usr/local/bin/parse_evtx_RDP_Remote.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/RDP-$comp_name.txt;
+      python3 /usr/local/bin/parse_evtx_RDP_Remote.py "$d" -n |tee -a $case_dir/Triage/Account_Usage/RDP-evtx-$comp_name.txt;
+    done
+    find $mount_dir/$winsysdir/$evtxdir -type f 2>/dev/null | grep -i \/Microsoft-Windows-Bits-Client/Operational.evtx$| while read d;
+    do
+      python3 /usr/local/bin/parse_evtx_BITS.py "$d" -n |tee -a $case_dir/Triage/Persistence/BITS-evtx-$comp_name.txt;
+    done
     #find $mount_dir/ -type f 2>/dev/null | grep -i \/Microsoft-Windows-RemoteDesktopServices-RdpCoreTS\%4Operational.evtx$| while read d;
     #do
     #  python3 /usr/local/bin/parse_evtx_RDP_Core.py "$d" |tee -a $case_dir/Triage/WindowsEventLogs/RDP-$comp_name.txt;
-    done
 }
-
 #Extract MFT to body file and then to TLN and csv files
 function analyze_mft(){
     cd $mount_dir
