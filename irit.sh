@@ -67,11 +67,7 @@ while [ opt != '' ]
     else
         case $opt in
         #Menu Selection 1: Mount disk image to $mount_dir
-        1) clear
-           /usr/local/bin/ermount -s
-           makered "Active volumes above will be umounted!!"
-           read -n1 -r -p "Press a key to continue..." key
-           umount_all           
+        1) clear   
            /usr/local/bin/ermount
             show_menu;
             ;;
@@ -219,34 +215,6 @@ while [ opt != '' ]
     esac
 fi
 done
-}
-
-#########DRIVE UMOUNT FUNCTIONS###########
-# Disk mounts completed by ermount
-
-#Umount drives before starting ermount
-function umount_all(){
-      echo "Umount commands sent to drives mounted in /tmp and NBD unloaded" && echo ""
-      umount_vss
-      [ "$(ls -A /mnt/bde 2>/dev/null)" ] && umount /mnt/bde -f -A || fusermount -uz /mnt/bde 2>/dev/null
-      [ "$(ls -A /mnt/image_mount 2>/dev/null)" ] && umount /mnt/image_mount -f -A || fusermount -uz /mnt/image_mount 2>/dev/null
-      [ "$(ls -A /mnt/raw/ 2>/dev/null)" ] && umount /mnt/raw -f -A || fusermount -uz /mnt/raw/ 2>/dev/null
-      ls /dev/nbd1p1 2>/dev/null && qemu-nbd -d /dev/nbd1 2>/dev/null
-      lsmod |grep -i ^nbd && rmmod nbd 2>/dev/null && echo "Warning: unloading Network Block Device"
-      mount_status
-}
-
-function umount_vss(){
-      vss_dir="/mnt/vss"
-      #umount any existing mounts
-      fusermount -uz $vss_dir 2>/dev/null || return 1
-      ls /mnt/shadow/ 2>/dev/null|while read vsc;
-      do
-        umount /mnt/shadow/$vsc 2>/dev/null
-        rmdir /mnt/shadow/$vsc 2>/dev/null
-        echo "/mnt/shadow/$vsc umounted"
-      done
-      rmdir /mnt/vss 2>/dev/null
 }
 
 ####### DATA ACQUISITION AND PROCESSING PREFERENCES #######
