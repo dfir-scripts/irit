@@ -133,40 +133,7 @@ while [ opt != '' ]
             ;;
         #Menu Selection 4: Acquire Data from Mounted Disks or Image Excerpts
         4) clear;
-           # Set Preferences
-           makegreen "Get a copy of Windows Artifacts"
-           set_msource_path
-           set_windir
-           get_computer_name
-           set_dsource_path
-           echo "#### Acquistion Log $comp_name  ####" >  $case_dir/Acquisition.log.txt
-           get_logsize
-           get_usnjrlnsize
-           # Begin Acquisition
-           echo ""
-           get_mft
-           get_evtx
-           get_registry
-           get_ntuser
-           get_usrclass.dat
-           get_lnk_files
-           get_prefetch
-           get_Amcache.hve
-           get_Recycle.Bin
-           get_webcachev
-           get_chrome
-           get_firefox
-           get_skype
-           get_WMI_info
-           get_srudb
-           get_ActivitiesCache
-           get_setupapi
-           get_scheduled_tasks
-           [ "$get_logs" ] && get_logfiles
-           [ "$usn" ] && get_usnjrnl
-           gzip -f $case_dir/$comp_name-acquisition.tar
-           makegreen "Data Acquisition Complete!"
-           du -sh $case_dir/$comp_name-acquisition.tar.gz
+           /usr/local/src/irit/grab-winfiles.sh
            read -n1 -r -p "Press any key to continue..." key
            clear;
            show_menu;
@@ -778,7 +745,9 @@ function chrome2tln(){
       user_name=$(echo "$d"|sed 's/\/AppData.*//'|sed 's/^.*\///')
       makegreen "Searching for CHROME HISTORY and DOWNLOADS (sqlite3)"
 
+
       #Extract Chrome Browsing history
+      cd $mount_dir
       [ "$d/History" != "" ] && \
       sqlite3 "$d/History" "select datetime(last_visit_time/1000000-11644473600, 'unixepoch'),url, title, visit_count from urls ORDER BY last_visit_time" | \
       awk -F'|' '{print $1",chrome,,,[URL]:"$2",TITLE: "$3", VISIT COUNT:"$4}'| \
@@ -813,6 +782,11 @@ function chrome2tln(){
       awk -F'|' '{print int($1/1000000-11644473600)"|"$2"|"$3}'| \
       awk -F'|' '{$1=strftime("%Y-%m-%d %H:%M:%S",$1)}{print $1",Chrome,,,[Bookmark Created] NAME:"$2" URL:"$3}' |\
       sed "s/,,,/,${comp_name},${user_name},/" | tee -a "$triage_dir/Browser_Activity/$user_name-Chrome-Bookmarks-$comp_name.csv"
+
+      #Run Hindsight on Chrome
+      cd $triage_dir/Browser_Activity
+      python /usr/local/src/Hindsight/hindsight.py -i "$mount_dir/$d" -o "$triage_dir/Browser_Activity/$user_name-Hindsight" -l "$triage_dir/Browser_Activity/hindsight.log"
+
     done
 
     # Copy Files to Timeline Temp File
