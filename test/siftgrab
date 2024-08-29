@@ -1510,13 +1510,13 @@ function run_hayabusa(){
 function parse_evtx_jsonl(){
   # Extract Powershell Logs
   find $case_dir/WindowsEventLogs/evtx_dump/ -type f 2>/dev/null | \
-  grep Microsoft-Windows-PowerShell%4Operational.evtx.jsonl | \
+  grep Microsoft-Windows-PowerShell%4Operational.evtx-$comp_name.jsonl | \
   while read d;
   do
     cat "$d" |jq -j '.Event|select(.EventData.ScriptBlockText !=null)|.System.Computer,.System.TimeCreated."#attributes".SystemTime,.EventData.Path,.System.Security."#attributes".UserID,.EventData.ScriptBlockText,.System.Channel' >> $case_dir/PowerShell/PowerShellScriptBlocks-$comp_name.txt
   done
   find $case_dir/WindowsEventLogs/evtx_dump/ -type f 2>/dev/null | \
-  grep Windows.PowerShell.evtx.jsonl| \
+  grep Windows.PowerShell.evtx-$comp_name.jsonl| \
   while read d;
   do
     cat "$d" 2>/dev/null | \
@@ -1568,7 +1568,7 @@ function parse_evtx_jsonl(){
   done
 
   # Create CSV of Task Scheduler from Evtx and create a summary
-  task_sched="$case_dir/WindowsEventLogs/evtx_dump/Microsoft-Windows-TaskScheduler%4Operational.evtx.jsonl"
+  task_sched="$case_dir/WindowsEventLogs/evtx_dump/Microsoft-Windows-TaskScheduler%4Operational.evtx-$comp_name.jsonl"
   if [ -f "${task_sched}" ]; then
     /opt/venv/bin/python /opt/app/dfir-scripts/WinEventLogs/parse_jsonl_tasks.py ${task_sched} >> $case_dir/ScheduledTasks/tasks_evtx.py-$comp_name.csv;
     /opt/venv/bin/python /opt/app/dfir-scripts/WinEventLogs/parse_jsonl_tasks.py -s ${task_sched} >> $case_dir/Summary/tasks_evtx_stacked.py-$comp_name.csv;
