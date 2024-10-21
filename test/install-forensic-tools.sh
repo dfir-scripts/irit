@@ -33,7 +33,7 @@ function main_install(){
   apt-get update 
   apt-get install python2 python3-pip python3-venv pipx git curl fdisk wget software-properties-common -y
   pipx ensurepath
-  cat /etc/issue|grep -Ei "u 2"\|"u 18" && install_gift_ppa
+
 
   cat /etc/issue|grep -i kali && \
   apt install gnome-terminal libewf-dev ewf-tools libbde-utils libvshadow-utils libesedb-utils xmount liblnk-utils libevtx-utils cifs-utils python3-libesedb plaso -y
@@ -50,7 +50,7 @@ function main_install(){
   source activate || pause
 
   #pip installs
-  sift_pip_pkgs="usnparser tabulate puremagic construct libesedb-python==20181229 openpyxl>=2.6.2 pefile>=2019.4.18 python-registry>=1.3.1 pywin32-ctypes>=0.2.0 six>=1.12.0 bits_parser pyarrow evtxtract beautifulsoup4 libscca-python setuptools==58.2.0 python-evtx python-registry usnparser tabulate regex iocextract oletools pandas sqlalchemy"
+  sift_pip_pkgs="prefetchcarve usncarve LnkParse3 usnparser tabulate puremagic construct libesedb-python==20181229 openpyxl>=2.6.2 pefile>=2019.4.18 python-registry>=1.3.1 pywin32-ctypes>=0.2.0 six>=1.12.0 bits_parser pyarrow evtxtract beautifulsoup4 libscca-python setuptools==58.2.0 python-evtx regex oletools pandas sqlalchemy"
   for pip_pkg in $sift_pip_pkgs;
   do
     pip3 install $pip_pkg || pause
@@ -68,8 +68,10 @@ function main_install(){
   latest_ver=$(curl -s "$git_release" |grep -Po -m 1 '(?<=tag/).*(?=" data)')
   pip3 install $git_download/$latest_ver.tar.gz
 
+  #Install Gift PPA
+  cat /etc/issue|grep -Ei "u 22"\|"u 18" && install_gift_ppa
   #Install Applications from Apt
-  sift_apt_pkgs="fdupes sleuthkit attr dcfldd afflib-tools autopsy qemu-utils lvm2 exfatprogs kpartx pigz exif dc3dd python-is-python3 pff-tools python3-lxml sqlite3 jq yara unzip p7zip-full p7zip-rar hashcat foremost testdisk chntpw graphviz ffmpeg mediainfo ifuse clamav geoip-bin geoip-database geoipupdate libsnappy-dev gnumeric xxd reglookup  ripgrep vinetto"
+  sift_apt_pkgs="fdupes sleuthkit attr dcfldd afflib-tools autopsy qemu-utils lvm2 exfatprogs kpartx pigz exif dc3dd pff-tools python-is-python3 python3-lxml sqlite3 jq yara unzip p7zip-full p7zip-rar hashcat foremost testdisk chntpw graphviz ffmpeg mediainfo ifuse clamav geoip-bin geoip-database geoipupdate libsnappy-dev gnumeric xxd reglookup  ripgrep vinetto"
   for apt_pkg in $sift_apt_pkgs;
   do
     echo "Installing $apt_pkg"
@@ -141,6 +143,13 @@ function main_install(){
   git clone https://github.com/dfir-scripts/csv2XLsheet.git /usr/local/src/dfir-scripts/csv2XLsheet
   [ "$(ls -A /usr/local/src/dfir-scripts/csv2XLsheet)" ] && chmod -R 755 /usr/local/src/dfir-scripts/csv2XLsheet || pause
   
+    #Git DFIR-Scripts lnk2j
+  [ "$(ls -A /usr/local/src/dfir-scripts/lnk2j 2>/dev/null)" ] && \
+  git -C /usr/local/src/dfir-scripts/lnk2j pull --force 2>/dev/null || \
+  git clone https://github.com/dfir-scripts/lnk2j.git /usr/local/src/dfir-scripts/lnk2j
+  [ "$(ls -A /usr/local/src/dfir-scripts/lnk2j)" ] && chmod -R 755 /usr/local/src/dfir-scripts/lnk2j/lnk2j.py || pause
+  cp /usr/local/src/dfir-scripts/lnk2j/lnk2j.py /opt/venv/bin/lnk2j.py
+  
   #Git and configure WMI Forensics
   [ "$(ls -A /usr/local/src/WMI_Forensics/ 2>/dev/null)" ] && \
   git -C /usr/local/src/WMI_Forensics pull --force 2>/dev/null || \
@@ -163,20 +172,10 @@ function main_install(){
   git -C /usr/local/src/kacos2000/WindowsTimeline pull --force 2>/dev/null|| \
   git clone https://github.com/kacos2000/WindowsTimeline.git /usr/local/src/kacos2000/WindowsTimeline
 
-  #Git and configure INDXParse
-  [ "$(ls -A /usr/local/src/INDXParse/)" ] && \
-  git -C /usr/local/src/INDXParse pull --force 2>/dev/null||\
-  git clone https://github.com/williballenthin/INDXParse.git /usr/local/src/INDXParse
-
   #Git and configure Didier Stevens Tools
   [ "$(ls -A /usr/local/src/DidierStevensSuite/)" ] && \
   git -C /usr/local/src/DidierStevensSuite pull --force 2>/dev/null|| \
   git clone https://github.com/DidierStevens/DidierStevensSuite.git /usr/local/src/DidierStevensSuite
-
-  #Git sqlite_miner
-  [ "$(ls -A /usr/local/src/sqlite_miner/)" ] && \
-  git -C /usr/local/src/sqlite_miner pull --force 2>/dev/null|| \
-  git clone https://github.com/threeplanetssoftware/sqlite_miner.git /usr/local/src/sqlite_miner
 
   #Git Kstrike
   [ "$(ls -A /usr/local/src/KStrike)" ] && \
@@ -190,9 +189,9 @@ function main_install(){
   pip3 install -qr /usr/local/src/srum-dump/requirements.txt
 
   #Git JL_Parser
-  [ "$(ls -A /usr/local/src/JumpList_Lnk_Parser)" ] && \
-  git -C /usr/local/src/JumpList_Lnk_Parser pull --force 2>/dev/null || \
-  git clone https://github.com/salehmuhaysin/JumpList_Lnk_Parser.git /usr/local/src/JumpList_Lnk_Parser
+  #[ "$(ls -A /usr/local/src/JumpList_Lnk_Parser)" ] && \
+  #git -C /usr/local/src/JumpList_Lnk_Parser pull --force 2>/dev/null || \
+  #git clone https://github.com/salehmuhaysin/JumpList_Lnk_Parser.git /usr/local/src/JumpList_Lnk_Parser
 
   #Git Zircolite
   [ "$(ls -A /usr/local/src/Zircolite)" ] && \
@@ -209,6 +208,8 @@ function main_install(){
   [ "$(ls -A /usr/local/src/Silv3rHorn)" ] && \
   git -C /usr/local/src/Silv3rhorn pull --force 2>/dev/null || \
   git clone https://github.com/dfir-scripts/4n6_misc.git /usr/local/src/Silv3rhorn
+  cp /usr/local/src/Silv3rhorn/*.py /opt/venv/bin/
+  chmod 755 /opt/venv/bin/registryFlush.py
 
   #Git Python-Registry
   [ "$(ls -A /usr/local/src/Python-Registry)" ] && \
@@ -227,9 +228,9 @@ function main_install(){
   chmod 755 /usr/local/src/keydet89/tools/source/* || pause
 
   #Alternative python module installs 
+  #pipx install  ntdissector
   pipx install impacket
   pipx install pyhindsight
-  pipx install  ntdisector  
   chmod 755 /root/.local/pipx/venvs/pyhindsight/bin/hindsight.py
   
   # Reverted breaks ermount.sh
@@ -281,6 +282,10 @@ function main_install(){
   wget -qO - https://github.com/Yamato-Security/hayabusa/releases/download/v$latest_ver/hayabusa-$latest_ver-all-platforms.zip| busybox unzip -
   cp hayabusa-*-lin-x64-musl /usr/local/bin/hayabusa 2>/dev/null
   chmod 755 /usr/local/bin/hayabusa
+  
+  #Download Event Hussar
+  wget -qO - https://github.com/yarox24/EvtxHussar/releases/download/1.8/EvtxHussar1.8_linux_amd64.zip |busybox unzip - -d /usr/local/src/
+  chmod 755 /usr/local/src/EvtxHussar/EvtxHussar
 
 #Download lf File Browser
   curl -s https://api.github.com/repos/gokcehan/lf/releases/latest | \
@@ -294,21 +299,6 @@ function main_install(){
   busybox unzip -j - lin64/densityscout -d /usr/local/src/dfir-scripts/ && \
   mv /usr/local/src/dfir-scripts/densityscout /usr/local/bin/densityscout && \
   chmod 755 /usr/local/bin/densityscout
-
-  # Download ftkimager
-  which ftkimager || \
-  wget  https://d1kpmuwb7gvu1i.cloudfront.net/ftkimager.3.1.1_ubuntu64.tar.gz -O - | \
-  tar -xzvf - -C /usr/local/src/dfir-scripts/  && \
-  chmod 755 /usr/local/src/dfir-scripts/ftkimager && mv /usr/local/src/dfir-scripts/ftkimager /usr/local/bin/
-
-  # Download Volatility 2.6
-  mkdir -p /usr/local/src/volatility2.6
-  [ "$(ls -A /usr/local/src/volatility2.6 2>/dev/null)" ] || \
-  wget -O /opt/app/volatility2.6/vol26.zip https://github.com/volatilityfoundation/volatility/releases/download/2.6.1/volatility_2.6_lin64_standalone.zip
-  unzip -j /opt/app/volatility2.6/vol26.zip -d /opt/app/volatility2.6 
-  chmod 755 /opt/app/volatility2.6/volatility_2.6_lin64_standalone
-  mv /opt/app/volatility2.6/volatility_2.6_lin64_standalone /opt/app/volatility2.6/vol26
-  rm /tmp/vol26.zip
 
   #wget winmem_decompress
   wget -O /usr/local/bin/winmem_decompress.py https://raw.githubusercontent.com/msuhanov/winmem_decompress/master/winmem_decompress.py
@@ -327,8 +317,8 @@ function main_install(){
   wget -O /usr/local/src/keywords/lolbas.csv https://lolbas-project.github.io/api/lolbas.csv
   cat /usr/local/src/keywords/lolbas.csv |awk -F'"' '{print $2}'|sort -u |tee /usr/local/src/keywords/lolbas-files.txt
   [ "$(ls -A /usr/local/src/keywords/awesome-lists/ 2>/dev/null)" ] && \
-  git -C /usr/local/src/keywords/awesome-lists/ pull --force 2>/dev/null || \
-  git clone https://github.com/mthcht/awesome-lists.git /usr/local/src/keywords/awesome-lists/
+  #git -C /usr/local/src/keywords/awesome-lists/ pull --force 2>/dev/null || \
+  #git clone https://github.com/mthcht/awesome-lists.git /usr/local/src/keywords/awesome-lists/
 
   wget -O /usr/local/src/keywords/only_keywords_regex.txt https://raw.githubusercontent.com/mthcht/ThreatHunting-Keywords/main/only_keywords_regex.txt
   wget -O /usr/local/src/keywords/only_keywords_regex_better_perf.txt https://raw.githubusercontent.com/mthcht/ThreatHunting-Keywords/main/only_keywords_regex_better_perf.txt
@@ -341,17 +331,6 @@ function main_install(){
 
   # Convert AppIDs to csv for JLParser
   cat /usr/local/src/EricZimmerman/AppIDs.txt | awk -F'"' '{print "Application IDs,"tolower($2)","$4}' >> /usr/local/src/EricZimmerman/AppIDs.csv
-
-  #Download and configure DeXRAY
-  which DeXRAY.pl || \
-  wget -O /usr/local/src/dfir-scripts/DeXRAY.pl http://hexacorn.com/d/DeXRAY.pl && \
-  chmod 755 /usr/local/src/dfir-scripts/DeXRAY.pl && mv /usr/local/src/dfir-scripts/DeXRAY.pl /usr/local/bin/ &&\
-  curl -L http://cpanmin.us | perl - --sudo App::cpanminus && \
-  cpanm Crypt::RC4 && \
-  cpanm Digest::CRC  && \
-  cpanm Crypt::Blowfish && \
-  cpanm Archive::Zip && \
-  cpanm OLE::Storage_Lite
 
   # Get Job Parser
   wget -O /usr/local/src/dfir-scripts/jobparser.py https://raw.githubusercontent.com/gleeda/misc-scripts/master/misc_python/jobparser.py || pause
@@ -388,6 +367,7 @@ deactivate
 
 
 [ $(whoami) != "root" ] && echo "Requires Root!" && exit
+cat /etc/issue|grep -Ei "u 24"\|"u 23" && echo "Try installing Siftgrab with Ubuntu 22.04, newer versions are not supported :(" && exit
 echo "cpu check"
 DEBIAN_FRONTEND=noninteractive
 arch |grep x86_64 || display_usage
@@ -403,3 +383,6 @@ echo "set org.gnome.desktop.media-handling automount false"
 
 echo ""
 echo  "   Install Complete!"
+
+####DELETE sqlite miner, volatility 2.6, DEXRAY, ftkimager, INDXParse, indxripper 
+####ADDED prefetchcarve  usncarve
