@@ -21,11 +21,11 @@ function pause(){
 }
 
 function install_gift_ppa(){
-  apt install software-properties-common -y && \
+  apt-get install software-properties-common -y && \
   add-apt-repository ppa:gift/stable -y &&  apt update || pause
   apt upgrade -q -y -u  || pause
   cat /etc/issue|grep -Ei "u 2"\|"u 18" && \
-  apt install libscca libewf-tools libbde-tools libvshadow-tools libesedb-tools liblnk-tools libevtx-tools plaso-tools bulk-extractor -y
+  apt-get install libscca libewf-tools libbde-tools libvshadow-tools libesedb-tools liblnk-tools libevtx-tools plaso-tools bulk-extractor -y
 }
 
 function main_install(){
@@ -36,7 +36,7 @@ function main_install(){
 
 
   cat /etc/issue|grep -i kali && \
-  apt install gnome-terminal libewf-dev ewf-tools libbde-utils libvshadow-utils libesedb-utils xmount liblnk-utils libevtx-utils cifs-utils python3-libesedb plaso -y
+  apt-get install gnome-terminal libewf-dev ewf-tools libbde-utils libvshadow-utils libesedb-utils xmount liblnk-utils libevtx-utils cifs-utils python3-libesedb plaso -y
 
   ############### Forensic Tools Download, Install and Confiuration ##########################
   #Make Disk Mount and Cases Directories
@@ -75,12 +75,12 @@ function main_install(){
   for apt_pkg in $sift_apt_pkgs;
   do
     echo "Installing $apt_pkg"
-    apt install $apt_pkg -y
+    apt-get install $apt_pkg -y
     dpkg -S $apt_pkg && echo "$apt_pkg Installed!"|| pause
   done
 
   #Git and configure Package Installations and Updates
-  Git analyzeMFT
+  #Git analyzeMFT
   [ "$(ls -A /usr/local/src/analyzeMFT/ 2>/dev/null)" ] && \
   cd /usr/local/src/analyzeMFT
   git -C /usr/local/src/analyzeMFT pull --force 2>/dev/null|| \
