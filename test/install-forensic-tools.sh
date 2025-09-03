@@ -30,17 +30,16 @@ function install_gift_ppa(){
 
 function main_install(){
   apt remove libewf2 -y
-  apt-get update 
-  apt-get install python2 python3-pip python3-venv pipx git curl fdisk wget software-properties-common -y
+  apt update 
+  apt-get install python3-pip python3*-venv pipx git curl fdisk wget software-properties-common busybox -y
   pipx ensurepath
 
-
   cat /etc/issue|grep -i kali && \
-  apt-get install gnome-terminal libewf-dev ewf-tools libbde-utils libvshadow-utils libesedb-utils xmount liblnk-utils libevtx-utils cifs-utils python3-libesedb plaso -y
+  apt-get install gnome-terminal libewf-dev ewf-tools libbde-utils libvshadow-utils libesedb-utils xmount liblnk-utils libevtx-utils python3-libesedb plaso -y
 
   ############### Forensic Tools Download, Install and Confiuration ##########################
   #Make Disk Mount and Cases Directories
-  mkdir -p /mnt/{raw,image_mount,vss,shadow,bde,smb,usb}
+  mkdir -p /mnt/{raw,image_mount,vss,shadow,bde,smb,usb,zip}
   mkdir -p /cases
 
 # setup python virtual environment
@@ -50,7 +49,7 @@ function main_install(){
   source activate || pause
 
   #pip installs
-  sift_pip_pkgs="prefetchcarve usncarve LnkParse3 usnparser tabulate puremagic construct libesedb-python==20181229 openpyxl>=2.6.2 pefile>=2019.4.18 python-registry>=1.3.1 pywin32-ctypes>=0.2.0 six>=1.12.0 bits_parser pyarrow evtxtract beautifulsoup4 libscca-python setuptools==58.2.0 python-evtx regex oletools pandas sqlalchemy"
+  sift_pip_pkgs="registryspy psutil prefetchcarve usncarve LnkParse3 usnparser tabulate puremagic construct libesedb-python==20181229 openpyxl>=2.6.2 pefile>=2019.4.18 python-registry>=1.3.1 pywin32-ctypes>=0.2.0 six>=1.12.0 bits_parser pyarrow evtxtract beautifulsoup4 libscca-python setuptools==58.2.0 python-evtx regex oletools pandas sqlalchemy gdown"
   for pip_pkg in $sift_pip_pkgs;
   do
     pip3 install $pip_pkg || pause
@@ -69,9 +68,9 @@ function main_install(){
   pip3 install $git_download/$latest_ver.tar.gz
 
   #Install Gift PPA
-  cat /etc/issue|grep -Ei "u 22"\|"u 18" && install_gift_ppa
+  install_gift_ppa
   #Install Applications from Apt
-  sift_apt_pkgs="fdupes sleuthkit attr dcfldd afflib-tools autopsy qemu-utils lvm2 exfatprogs kpartx pigz exif dc3dd pff-tools python-is-python3 python3-lxml sqlite3 jq yara unzip p7zip-full p7zip-rar hashcat foremost testdisk chntpw graphviz ffmpeg mediainfo ifuse clamav geoip-bin geoip-database geoipupdate libsnappy-dev gnumeric xxd reglookup  ripgrep vinetto"
+  sift_apt_pkgs="hashid cifs-utils fdupes sleuthkit attr dcfldd afflib-tools autopsy qemu-utils lvm2 exfatprogs kpartx pigz exif dc3dd pff-tools python-is-python3 python3-lxml sqlite3 jq yara unzip p7zip-full p7zip-rar hashcat foremost caffeine parallel fuse-zip testdisk chntpw graphviz ffmpeg mediainfo ifuse clamav geoip-bin geoip-database geoipupdate libsnappy-dev gnumeric xxd reglookup ripgrep vinetto fd-find"
   for apt_pkg in $sift_apt_pkgs;
   do
     echo "Installing $apt_pkg"
@@ -88,7 +87,6 @@ function main_install(){
   [ "$(ls -A /usr/local/src/analyzeMFT/)" ] || pause
   cd /usr/local/src/analyzeMFT/
   git checkout 16d12822563cd5cae8675788134ac0ff6e9f5c01
-  #python3 setup.py install || pause
 
   #Git BitsParser
   [ "$(ls -A /usr/local/src/BitsParser)" ] && \
@@ -130,7 +128,7 @@ function main_install(){
   git -C /usr/local/src/dfir-scripts/prefetchruncounts pull --force 2>/dev/null || \
   git clone https://github.com/dfir-scripts/prefetchruncounts.git /usr/local/src/dfir-scripts/prefetchruncounts
   [ "$(ls -A /usr/local/src/dfir-scripts/prefetchruncounts)" ] && chmod -R 755 /usr/local/src/dfir-scripts/prefetchruncounts || pause
-  
+
   #Git DFIR-Scripts Python-Registry
   [ "$(ls -A /usr/local/src/dfir-scripts/Python-Registry 2>/dev/null)" ] && \
   git -C /usr/local/src/dfir-scripts/Python-Registry pull --force 2>/dev/null || \
@@ -142,26 +140,18 @@ function main_install(){
   git -C /usr/local/src/dfir-scripts/csv2XLsheet pull --force 2>/dev/null || \
   git clone https://github.com/dfir-scripts/csv2XLsheet.git /usr/local/src/dfir-scripts/csv2XLsheet
   [ "$(ls -A /usr/local/src/dfir-scripts/csv2XLsheet)" ] && chmod -R 755 /usr/local/src/dfir-scripts/csv2XLsheet || pause
-  
+
     #Git DFIR-Scripts lnk2j
   [ "$(ls -A /usr/local/src/dfir-scripts/lnk2j 2>/dev/null)" ] && \
   git -C /usr/local/src/dfir-scripts/lnk2j pull --force 2>/dev/null || \
   git clone https://github.com/dfir-scripts/lnk2j.git /usr/local/src/dfir-scripts/lnk2j
   [ "$(ls -A /usr/local/src/dfir-scripts/lnk2j)" ] && chmod -R 755 /usr/local/src/dfir-scripts/lnk2j/lnk2j.py || pause
   cp /usr/local/src/dfir-scripts/lnk2j/lnk2j.py /opt/venv/bin/lnk2j.py
-  
-  #Git and configure WMI Forensics
-  [ "$(ls -A /usr/local/src/WMI_Forensics/ 2>/dev/null)" ] && \
-  git -C /usr/local/src/WMI_Forensics pull --force 2>/dev/null || \
-  git clone https://github.com/davidpany/WMI_Forensics.git /usr/local/src/WMI_Forensics
-  cp /usr/local/src/WMI_Forensics/CCM_RUA_Finder.py /usr/local/bin/CCM_RUA_Finder.py || pause
-  cp /usr/local/src/WMI_Forensics/PyWMIPersistenceFinder.py /usr/local/bin/PyWMIPersistenceFinder.py || pause
 
   #Git Volatility3
   [ "$(ls -A /usr/local/src/volatility/ 2>/dev/null)" ] && \
   git -C /usr/local/src/volatility pull --force 2>/dev/null|| \
   git clone https://github.com/volatilityfoundation/volatility3.git /usr/local/src/volatility3
-  pip3 install -qr /usr/local/src/volatility3/requirements.txt
 
   #Git kacos2000 Scripts
   [ "$(ls -A /usr/local/src/kacos2000/Queries 2>/dev/null)" ] && \
@@ -188,16 +178,11 @@ function main_install(){
   git clone https://github.com/dfir-scripts/srum-dump.git /usr/local/src/srum-dump
   pip3 install -qr /usr/local/src/srum-dump/requirements.txt
 
-  #Git JL_Parser
-  #[ "$(ls -A /usr/local/src/JumpList_Lnk_Parser)" ] && \
-  #git -C /usr/local/src/JumpList_Lnk_Parser pull --force 2>/dev/null || \
-  #git clone https://github.com/salehmuhaysin/JumpList_Lnk_Parser.git /usr/local/src/JumpList_Lnk_Parser
-
   #Git Zircolite
   [ "$(ls -A /usr/local/src/Zircolite)" ] && \
   git -C /usr/local/src/Zircolite pull --force 2>/dev/null || \
   git clone https://github.com/wagga40/Zircolite.git /usr/local/src/Zircolite
-  pip3 install -r /usr/local/src/Zircolite/requirements.txt
+  pip3 install -r /usr/local/src/Zircolite/requirements.full.txt
 
   #Git EventTranscriptParser
   [ "$(ls -A /usr/local/src/EventTranscriptParser)" ] && \
@@ -228,24 +213,11 @@ function main_install(){
   chmod 755 /usr/local/src/keydet89/tools/source/* || pause
 
   #Alternative python module installs 
-  #pipx install  ntdissector
-  pipx install impacket
-  pipx install pyhindsight
-  chmod 755 /root/.local/pipx/venvs/pyhindsight/bin/hindsight.py
+  PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin pipx install impacket
+  pip install pyhindsight==20230327.0
   
-  # Reverted breaks ermount.sh
-  #Git and configure apfs-fuse
-  #[ "$(ls -A /usr/local/src/apfs-fuse/ 2>/dev/null)" ] && \
-  #git -C /usr/local/src/apfs-fuse/ pull --force 2>/dev/null || \
-  #git clone https://github.com/sgan81/apfs-fuse.git /usr/local/src/apfs-fuse/
-  #cd /usr/local/src/apfs-fuse/
-  #git submodule init
-  #git submodule update
-  #mkdir build
-  #cd build
-  #cmake ..
-  #make
-  #cp /usr/local/src/apfs-fuse/build/apfs-* /usr/local/bin/
+  chmod 755 /opt/venv/bin/hindsight.py
+  chmod 755 /opt/venv/bin/hindsight_gui.py
 
   #Download evtx_dump
   mkdir -p /usr/local/src/omerbenamram/evtx_dump/
@@ -258,7 +230,6 @@ function main_install(){
   grep -E 'browser_download_url.*64-unknown-linux-musl'| \
   awk -F'"' '{system("wget -O /usr/local/src/omerbenamram/evtx_dump/evtx_dump "$4) }'  && \
   chmod 755 $install_dir/evtx_dump && cp $install_dir/evtx_dump /usr/local/bin/evtx_dump || pause
-
 
   # Use Wget and curl to download tools
   #Download mft_dump
@@ -283,6 +254,12 @@ function main_install(){
   cp hayabusa-*-lin-x64-musl /usr/local/bin/hayabusa 2>/dev/null
   chmod 755 /usr/local/bin/hayabusa
   
+  #Install Ntdissector
+  mkdir -p /usr/local/src/Ntdissector
+  cd /usr/local/src/
+  [ -d /opt/app/Ntdissector/ntdissector ] || git clone https://github.com/synacktiv/ntdissector.git Ntdissector
+  python3 -m pip install ./Ntdissector
+
   #Download Event Hussar
   wget -qO - https://github.com/yarox24/EvtxHussar/releases/download/1.8/EvtxHussar1.8_linux_amd64.zip |busybox unzip - -d /usr/local/src/
   chmod 755 /usr/local/src/EvtxHussar/EvtxHussar
@@ -316,12 +293,13 @@ function main_install(){
   mkdir -p /usr/local/src/keywords
   wget -O /usr/local/src/keywords/lolbas.csv https://lolbas-project.github.io/api/lolbas.csv
   cat /usr/local/src/keywords/lolbas.csv |awk -F'"' '{print $2}'|sort -u |tee /usr/local/src/keywords/lolbas-files.txt
-  [ "$(ls -A /usr/local/src/keywords/awesome-lists/ 2>/dev/null)" ] && \
-  #git -C /usr/local/src/keywords/awesome-lists/ pull --force 2>/dev/null || \
-  #git clone https://github.com/mthcht/awesome-lists.git /usr/local/src/keywords/awesome-lists/
+  [ "$(ls -A /usr/local/src/keywords/ThreatHunting-Keywords-yara-rules/ 2>/dev/null)" ] && \
+  git -C /usr/local/src/ThreatHunting-Keywords-yara-rules pull --force 2>/dev/null || \
+  git clone https://github.com/mthcht/ThreatHunting-Keywords-yara-rules.git /usr/local/src/keywords/ThreatHunting-Keywords-yara-rules/
 
   wget -O /usr/local/src/keywords/only_keywords_regex.txt https://raw.githubusercontent.com/mthcht/ThreatHunting-Keywords/main/only_keywords_regex.txt
   wget -O /usr/local/src/keywords/only_keywords_regex_better_perf.txt https://raw.githubusercontent.com/mthcht/ThreatHunting-Keywords/main/only_keywords_regex_better_perf.txt
+  wget -O /usr/local/src/keywords/all.yara https://github.com/mthcht/ThreatHunting-Keywords-yara-rules/raw/refs/heads/main/yara_rules/all.yara
   vi -c ":set nobomb" -c ":wq" /usr/local/src/keywords/only_keywords_regex.txt
   vi -c ":set nobomb" -c ":wq" /usr/local/src/keywords/only_keywords_regex_better_perf.txt
 
@@ -332,16 +310,20 @@ function main_install(){
   # Convert AppIDs to csv for JLParser
   cat /usr/local/src/EricZimmerman/AppIDs.txt | awk -F'"' '{print "Application IDs,"tolower($2)","$4}' >> /usr/local/src/EricZimmerman/AppIDs.csv
 
-  # Get Job Parser
-  wget -O /usr/local/src/dfir-scripts/jobparser.py https://raw.githubusercontent.com/gleeda/misc-scripts/master/misc_python/jobparser.py || pause
-  mv /usr/local/src/dfir-scripts/jobparser.py /usr/local/bin/
+  # Get mount that thing
+  wget -O /usr/local/bin/mtt https://raw.githubusercontent.com/halpomeranz/dfis/refs/heads/master/mtt.sh
+  chmod 755 /usr/local/bin/mtt
+  
+  #  Get compiled version of Sidr
+  wget -O /usr/local/bin/sidr https://github.com/dfir-scripts/sidr/raw/refs/heads/main/sidr || pause
+  chmod 755 /usr/local/bin/sidr
 
   # Download MemProcFS
   rm -r /usr/local/src/MemProcFS/ 2>/dev/null
   mkdir -p /usr/local/src/MemProcFS
   cd /usr/local/src/MemProcFS
   curl -s "https://api.github.com/repos/ufrisk/MemProcFS/releases/latest" | \
-  jq -r '.assets[] | .browser_download_url' |grep linux_x64| sudo xargs curl -LO
+  jq -r '.assets[] | .browser_download_url' |grep linux_x64| xargs curl -LO
   ls -A && tar -xvf /usr/local/src/MemProcFS/*.gz -C  /usr/local/src/MemProcFS/ && \
   rm /usr/local/src/MemProcFS/*.gz
 
@@ -352,8 +334,9 @@ function main_install(){
   #install RegRipper.git and RegRipper install script
   /usr/local/src/dfir-scripts/installers/RegRipper30-apt-git-Install.sh
 
-  #Create a symbolic link to /opt/share
+  #Create a symbolic links to /opt/share and for fd
   [ -d "/opt/app" ] || ln -s /usr/local/src/ /opt/app
+  ln -s $(which fdfind) /usr/local/bin/fd
   #set Windows Perl scripts in Keydet89/Tools/source
   find /usr/local/src/keydet89/tools/source -type f 2>/dev/null|grep pl$ | while read d;
   do
@@ -362,12 +345,22 @@ function main_install(){
     sed -i '/^#! c:[\]perl[\]bin[\]perl.exe/d' $d && sed -i "1i #!$a" $d
     cp $d /usr/local/bin/$file_name || pause
   done
+  
+wget -O /tmp/setup-zimmerman-tools.sh https://gist.githubusercontent.com/dfir-scripts/10034ce77b04db988dcafbbb2567a426/raw/setup-zimmerman-tools.sh
+chmod 755 /tmp/setup-zimmerman-tools.sh
+/tmp/setup-zimmerman-tools.sh
+rm /tmp/setup-zimmerman-tools.sh
+cd /opt/zimmermantools
+/opt/venv/bin/gdown 1qfiqzv3geQNYsr6R8sZaWPl7nO6NlLeu
+unzip -o Zimmerman-linux.zip
+chmod 755 WxTCmd/WxTCmd
+chmod 755 SQLECmd/SQLECmd
+find /opt/zimmermantools/Zimmerman-linux.zip -delete
 deactivate
 }
 
 
 [ $(whoami) != "root" ] && echo "Requires Root!" && exit
-cat /etc/issue|grep -Ei "u 24"\|"u 23" && echo "Try installing Siftgrab with Ubuntu 22.04, newer versions are not supported :(" && exit
 echo "cpu check"
 DEBIAN_FRONTEND=noninteractive
 arch |grep x86_64 || display_usage
@@ -383,6 +376,3 @@ echo "set org.gnome.desktop.media-handling automount false"
 
 echo ""
 echo  "   Install Complete!"
-
-####DELETE sqlite miner, volatility 2.6, DEXRAY, ftkimager, INDXParse, indxripper 
-####ADDED prefetchcarve  usncarve
